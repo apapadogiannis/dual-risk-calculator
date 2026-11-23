@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dual-risk-calculator"
-version = "1.0.0"
+version = "1.0.1"
 description = "Dual-risk DCF calculations (benchmark rate c and valuation ratio K), with an MCP server"
 readme = "README.md"
 requires-python = ">=3.10"

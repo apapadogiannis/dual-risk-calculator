@@ -19,7 +19,8 @@ PAGE = "https://apapadogiannis.github.io/dual-risk-calculator/"
 REPO = "https://github.com/apapadogiannis/dual-risk-calculator"
 RAW = "https://raw.githubusercontent.com/apapadogiannis/dual-risk-calculator/main/"
 INSTALL = f"uvx --from git+{REPO} dual-risk-mcp"
-CITE = (f'A. Papadogiannis (2026), "Dual-Risk DCF Calculator", version {__version__}, {REPO}, '
+ARCHIVE = "https://doi.org/10.5281/zenodo.24465124"
+CITE = (f'A. Papadogiannis (2026), "Dual-Risk DCF Calculator", version {__version__}, Zenodo, {ARCHIVE}, '
         f"together with the article: {core.CITATION}")
 
 

@@ -22,6 +22,11 @@
   "license": "MIT",
   "related_identifiers": [
     {
+      "relation": "isDerivedFrom",
+      "identifier": "10.5281/zenodo.24465118",
+      "scheme": "doi"
+    },
+    {
       "relation": "references",
       "identifier": "10.1016/j.finr.2026.100096",
       "scheme": "doi"
@@ -32,6 +37,6 @@
       "scheme": "url"
     }
   ],
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publication_date": "2026-11-23"
 }

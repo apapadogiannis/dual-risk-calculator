@@ -4,7 +4,7 @@ A calculator for the dual-risk reading of a discounted cash flow value: it keeps
 discount rate c fixed and puts the gap between two views of an asset into one number, the valuation
 ratio K = V_fair / V. It computes from the numbers the user gives. It holds no market data.
 
-Maintained by Agisilaos Papadogiannis. Version 1.0.0. It changes only when the code changes;
+Maintained by Agisilaos Papadogiannis. Version 1.0.1. It changes only when the code changes;
 there is no data feed.
 
 ## What it computes
@@ -80,5 +80,5 @@ there is no data feed.
 
 Method: A. Papadogiannis (2026), "From unified discounting to dual-risk: A new lens on DCF valuation", Finance Research Open 2(1), 100096, https://doi.org/10.1016/j.finr.2026.100096 (open access, CC BY 4.0).
 Code: MIT License. Text and figures of the page: CC BY 4.0, whose one condition is credit.
-Cite as: A. Papadogiannis (2026), "Dual-Risk DCF Calculator", version 1.0.0, https://github.com/apapadogiannis/dual-risk-calculator, together with the article: A. Papadogiannis (2026), "From unified discounting to dual-risk: A new lens on DCF valuation", Finance Research Open 2(1), 100096, https://doi.org/10.1016/j.finr.2026.100096
+Cite as: A. Papadogiannis (2026), "Dual-Risk DCF Calculator", version 1.0.1, Zenodo, https://doi.org/10.5281/zenodo.24465124, together with the article: A. Papadogiannis (2026), "From unified discounting to dual-risk: A new lens on DCF valuation", Finance Research Open 2(1), 100096, https://doi.org/10.1016/j.finr.2026.100096
 Description: an open-source calculator by the author of the article, implementing its formulas.

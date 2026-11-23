@@ -1,6 +1,7 @@
 # Dual-Risk DCF Calculator
 
 [![check](https://github.com/apapadogiannis/dual-risk-calculator/actions/workflows/check.yml/badge.svg)](https://github.com/apapadogiannis/dual-risk-calculator/actions/workflows/check.yml)
+[![Zenodo](https://img.shields.io/badge/Zenodo-10.5281%2Fzenodo.24465124-007ec6)](https://doi.org/10.5281/zenodo.24465124)
 
 How much of a valuation gap is the forecast, and what would it take the discount rate to hide it?
 Enter your own forecasts or your own prices and get the answer in two numbers.
@@ -155,8 +156,8 @@ Code: MIT. Text and figures of the page: CC BY 4.0. The article is open access u
 Papadogiannis, A. (2026). From unified discounting to dual-risk: A new lens on DCF valuation.
 *Finance Research Open*, 2(1), 100096. https://doi.org/10.1016/j.finr.2026.100096
 
-Papadogiannis, A. (2026). Dual-Risk DCF Calculator.
-https://github.com/apapadogiannis/dual-risk-calculator
+Papadogiannis, A. (2026). Dual-Risk DCF Calculator. Zenodo.
+https://doi.org/10.5281/zenodo.24465124
 
 ## Disclaimer
 
