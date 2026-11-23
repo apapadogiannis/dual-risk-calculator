@@ -17,6 +17,8 @@ import json
 ex = json.loads((ROOT / "api" / "example.json").read_text())
 again = core.from_forecasts(ex["inputs"]["c"], ex["inputs"]["benchmark"], ex["inputs"]["examined"])
 assert all(abs(ex["results"][k] - again[k]) < 1e-9 for k in ex["fields"]), "example.json does not follow from its inputs"
+cfg = json.loads((ROOT / "mcp.json").read_text())["mcpServers"]["dual-risk"]
+assert " ".join([cfg["command"], *cfg["args"]]) == build.INSTALL and build.INSTALL in (ROOT / "README.md").read_text()
 assert len(REGISTRY) == 6
 for name, _ in REGISTRY:
     assert name in guide and name in skill, name

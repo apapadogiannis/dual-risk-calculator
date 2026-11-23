@@ -21,9 +21,26 @@ nothing. For Claude Code:
 claude mcp add dual-risk -- uvx --from git+https://github.com/apapadogiannis/dual-risk-calculator dual-risk-mcp
 ```
 
-For any other MCP client, the command is `uvx` with the arguments
-`--from git+https://github.com/apapadogiannis/dual-risk-calculator dual-risk-mcp`. It needs
-[uv](https://docs.astral.sh/uv/) and Python 3.10 or later.
+For Claude Desktop and other clients that take a configuration file, [`mcp.json`](mcp.json) is the
+entry to copy into it:
+
+```json
+{
+  "mcpServers": {
+    "dual-risk": {
+      "command": "uvx",
+      "args": ["--from", "git+https://github.com/apapadogiannis/dual-risk-calculator", "dual-risk-mcp"]
+    }
+  }
+}
+```
+
+It needs [uv](https://docs.astral.sh/uv/) and Python 3.10 or later. The first start downloads and
+builds the package, which takes a few seconds; later starts are immediate. The server itself is one
+file, [`dualrisk/server.py`](dualrisk/server.py), and the command above runs it.
+
+It is a local server: it works in Claude Desktop, Claude Code and other clients that can start a
+program on your machine. A chat in the browser or on a phone cannot start one.
 
 Then ask, for example, "my forecast is 90 a year for five years and the benchmark forecast is 100;
 at 8%, what is K and the effective rate?".
@@ -111,6 +128,7 @@ Open `_site/index.html` in a browser.
 ```
 dualrisk/core.py           the formulas, each with the equation of the article it implements
 dualrisk/server.py         the MCP server
+mcp.json                   the entry for an MCP client's configuration file
 site/index.html            the page, with the same formulas in JavaScript
 build.py                   builds the site and writes the guide and the skill
 api/                       llms.txt (the guide), SKILL.md (the skill) and example.json (a worked case)
