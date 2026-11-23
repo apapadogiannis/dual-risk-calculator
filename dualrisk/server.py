@@ -18,7 +18,7 @@ from pydantic import Field
 
 from . import __version__, core
 
-NAME = "dual-risk"        # the one name of this server: in mcp.json, the README, the guide and the skill
+NAME = "dual-risk"        # the one name of this server: in mcp.json, the README and the guide
 
 NOTE = ("Computed with the formulas of the cited article from the inputs given. "
         "It describes those inputs; it is not a forecast or a recommendation.")

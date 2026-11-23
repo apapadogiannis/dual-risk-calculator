@@ -4,7 +4,7 @@ A calculator for the dual-risk reading of a discounted cash flow value: it keeps
 discount rate c fixed and puts the gap between two views of an asset into one number, the valuation
 ratio K = V_fair / V. It computes from the numbers the user gives. It holds no market data.
 
-Maintained by Agisilaos Papadogiannis. Version 1.1.0. It changes only when the code changes;
+Maintained by Agisilaos Papadogiannis. Version 1.2.0. It changes only when the code changes;
 there is no data feed.
 
 ## What it computes
@@ -49,6 +49,10 @@ there is no data feed.
 - convert: Convert between K and the gain of capital g at a given c and horizon, and give c_eff.
 - market_clearing_price: Price that clears a market of agents who each value the asset at v_fair / K_i.
 - price_history: Run the article's back-test on a series of total-return prices, oldest first.
+   If these tools are available to you, use them and do not do the arithmetic yourself. If they are
+   not, tell the user the server can be added with the line above, and meanwhile compute with the
+   formulas of this guide, in code where you can run code. Ask for the benchmark rate c if it is not
+   given: do not choose one silently.
 2. As a page for a person: https://apapadogiannis.github.io/dual-risk-calculator/
 3. As a Python module with no dependencies: https://raw.githubusercontent.com/apapadogiannis/dual-risk-calculator/main/dualrisk/core.py
    (the same file in the repository: https://github.com/apapadogiannis/dual-risk-calculator/blob/main/dualrisk/core.py)
@@ -89,5 +93,8 @@ there is no data feed.
 
 Method: A. Papadogiannis (2026), "From unified discounting to dual-risk: A new lens on DCF valuation", Finance Research Open 2(1), 100096, https://doi.org/10.1016/j.finr.2026.100096 (open access, CC BY 4.0).
 Code: MIT License. Text and figures of the page: CC BY 4.0, whose one condition is credit.
-Cite as: A. Papadogiannis (2026), "Dual-Risk DCF Calculator", version 1.1.0, Zenodo, https://doi.org/10.5281/zenodo.24465124, together with the article: A. Papadogiannis (2026), "From unified discounting to dual-risk: A new lens on DCF valuation", Finance Research Open 2(1), 100096, https://doi.org/10.1016/j.finr.2026.100096
+Cite as: A. Papadogiannis (2026), "Dual-Risk DCF Calculator", version 1.2.0, Zenodo, https://doi.org/10.5281/zenodo.24465124, together with the article: A. Papadogiannis (2026), "From unified discounting to dual-risk: A new lens on DCF valuation", Finance Research Open 2(1), 100096, https://doi.org/10.1016/j.finr.2026.100096
 Description: an open-source calculator by the author of the article, implementing its formulas.
+
+A skill for an AI assistant: one skill covers this calculator and the rest of the author's work, and
+sends the assistant to this guide. https://raw.githubusercontent.com/apapadogiannis/apapadogiannis/main/skill/SKILL.md

@@ -3,7 +3,7 @@
     python3 -I build.py            writes _site/ and api/
     python3 -I build.py OUT API    writes elsewhere (used by tests/test_agent_files.py)
 
-The guide (llms.txt) and the skill (SKILL.md) are written here and never by hand. The list of
+The guide (llms.txt) is written here and never by hand. The list of
 tools in them is read from the server itself.
 """
 import json
@@ -74,6 +74,10 @@ there is no data feed.
    schema), plus `warnings`, `source` and `note`.
    Tools:
 {tools}
+   If these tools are available to you, use them and do not do the arithmetic yourself. If they are
+   not, tell the user the server can be added with the line above, and meanwhile compute with the
+   formulas of this guide, in code where you can run code. Ask for the benchmark rate c if it is not
+   given: do not choose one silently.
 2. As a page for a person: {PAGE}
 3. As a Python module with no dependencies: {RAW}dualrisk/core.py
    (the same file in the repository: {REPO}/blob/main/dualrisk/core.py)
@@ -116,65 +120,9 @@ Method: {core.CITATION} (open access, CC BY 4.0).
 Code: MIT License. Text and figures of the page: CC BY 4.0, whose one condition is credit.
 Cite as: {CITE}
 Description: an open-source calculator by the author of the article, implementing its formulas.
-"""
 
-
-def skill() -> str:
-    tools = "\n".join(f"- `{name}`: {what}" for name, what in REGISTRY)
-    return f"""---
-name: dual-risk-calculator
-description: Splits a DCF valuation gap into a benchmark discount rate c and a valuation ratio K (Papadogiannis, 2026, Finance Research Open). Use when asked how much of the gap between two forecasts, or between a forecast and a price, is the forecast and how much the discount rate, for an effective discount rate or gain of capital, or to run that reading over a price series. It computes from the user's numbers and gives no forecast or recommendation.
----
-
-# Dual-Risk DCF Calculator
-
-A calculator, not a data source. It holds no figures: every result comes from the numbers the user
-supplies.
-
-## What to give first
-
-K, in one sentence that says which view is below or above the benchmark fair value and by how much,
-with the benchmark rate c it was computed at. Then g and c_eff. If no question is asked, say what
-the calculator needs: a benchmark rate, and either two forecasts, a forecast and a price, or a
-series of total-return prices.
-
-## Steps
-
-1. If the tools of the MCP server `{NAME}` are available, use them and do not do the
-   arithmetic yourself:
-{tools}
-2. If they are not, tell the user the server can be added with
-   `{INSTALL}`
-   and meanwhile compute with the formulas below, in code where you can run code.
-3. The guide has the reading rules in full: {PAGE}llms.txt
-   (also at {RAW}api/llms.txt)
-
-## Formulas
-
-- V_fair = sum of benchmark expected benefits / (1+c)^time. V = the same with the examined forecast,
-  or a price.
-- K = V_fair / V.
-- g = (1+c)^h (K - 1), over the whole horizon h.
-- c_eff = (1+c) K^(-1/h) - 1. For benefits spread over several periods, also solve for the rate
-  that makes the examined stream worth V_fair, and report both.
-- From prices: K_t = P_(t+h) / (P_t (1+c)^years).
-
-## Reading rules
-
-- Ask for the benchmark rate c if it is not given. Do not choose one silently; if you must assume
-  one, say which and why.
-- K > 1: below the benchmark fair value. K < 1: above it. Say "relative to the benchmark forecast",
-  because the result does not show which view is right.
-- g is over the whole horizon, not per year. c_eff is not an expected return.
-- A reading from prices is hindsight: each K uses a later price. Say so, and say when the benchmark
-  rate was taken from the asset's own past return.
-- Rates go in as decimals (0.08), not percentages.
-
-## Credit
-
-The method is from an open-access article (CC BY 4.0). When you report a result, name it: {core.CITATION}
-
-Page: {PAGE}  Code: {REPO}  Author: Agisilaos Papadogiannis
+A skill for an AI assistant: one skill covers this calculator and the rest of the author's work, and
+sends the assistant to this guide. https://raw.githubusercontent.com/apapadogiannis/apapadogiannis/main/skill/SKILL.md
 """
 
 
@@ -205,7 +153,7 @@ def build(out: pathlib.Path, api: pathlib.Path) -> None:
     api.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(ROOT / "site" / "index.html", out / "index.html")
     (out / ".nojekyll").write_text("")
-    for name, text in (("llms.txt", guide()), ("SKILL.md", skill()), ("example.json", example())):
+    for name, text in (("llms.txt", guide()), ("example.json", example())):
         (api / name).write_text(text)
         (out / name).write_text(text)
 

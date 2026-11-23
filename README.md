@@ -45,13 +45,16 @@ program on your machine. A chat in the browser or on a phone cannot start one.
 Then ask, for example, "my forecast is 90 a year for five years and the benchmark forecast is 100;
 at 8%, what is K and the effective rate?".
 
-`api/SKILL.md` is a skill: a short file that tells an agent when to use the calculator and how to
-read its results. For Claude Code:
+A skill is a short file that tells an assistant when to use the work and how to read its results.
+One skill covers this calculator and the rest of the research. For Claude Code:
 
 ```bash
-mkdir -p ~/.claude/skills/dual-risk-calculator
-curl -o ~/.claude/skills/dual-risk-calculator/SKILL.md https://apapadogiannis.github.io/dual-risk-calculator/SKILL.md
+mkdir -p ~/.claude/skills/papadogiannis-finance-research
+curl -o ~/.claude/skills/papadogiannis-finance-research/SKILL.md https://raw.githubusercontent.com/apapadogiannis/apapadogiannis/main/skill/SKILL.md
 ```
+
+The calculator no longer publishes a skill of its own. What that skill said about using the server
+is now in the guide.
 
 ## For AI agents and programs
 
@@ -70,7 +73,7 @@ doing the arithmetic yourself, how to read each figure, and what not to use it f
 `api/example.json` is one worked case with its inputs and results.
 
 `dualrisk/core.py` is the same set of formulas as a Python module with no dependencies. The guide
-and the skill are written by `build.py` and checked by the tests. Do not edit them by hand.
+is written by `build.py` and checked by the tests. Do not edit it by hand.
 
 ## What it is
 
@@ -118,7 +121,7 @@ python3 -I tests/make_vectors.py       # test cases and their results in Python
 node tests/check_page.mjs              # the page's calculations on the same cases
 python3 -I tests/test_server.py        # starts the MCP server and calls every tool
 python3 -I build.py                    # writes _site/ and api/
-python3 -I tests/test_agent_files.py   # the guide and the skill are what the build writes
+python3 -I tests/test_agent_files.py   # the guide is what the build writes
 ```
 
 Open `_site/index.html` in a browser.
@@ -130,8 +133,8 @@ dualrisk/core.py           the formulas, each with the equation of the article i
 dualrisk/server.py         the MCP server
 mcp.json                   the entry for an MCP client's configuration file
 site/index.html            the page, with the same formulas in JavaScript
-build.py                   builds the site and writes the guide and the skill
-api/                       llms.txt (the guide), SKILL.md (the skill) and example.json (a worked case)
+build.py                   builds the site and writes the guide
+api/                       llms.txt (the guide) and example.json (a worked case)
 tests/test_core.py         checks against the article
 tests/test_continuity.py   the price history against the stored results in reference/
 reference/                 weekly prices and results of the article's replication package

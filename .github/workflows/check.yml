@@ -44,7 +44,7 @@ jobs:
           python3 -I build.py
           test -s _site/index.html
 
-      - name: The guide and the skill are the ones the build writes
+      - name: The guide is the one the build writes
         run: python3 -I tests/test_agent_files.py
 
       - name: Hand the built page to GitHub Pages
