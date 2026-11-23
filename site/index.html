@@ -189,7 +189,8 @@ const DR=(()=>{
   const ratioFromGain=(c,g,h)=>1+g/Math.pow(1+rate(c),h);
   const ceff=(c,K,h)=>{if(!(K>0))err("K must be positive");if(!(h>0))err("the horizon must be positive");return(1+rate(c))*Math.pow(K,-1/h)-1;};
   const ceffStream=(own,vf)=>{const s=stream(own);if(s.some(([,x])=>x<0)||!s.some(([,x])=>x>0))err("needs non-negative benefits that are not all zero");if(!(vf>0))err("the fair value must be positive");
-    const f=r=>fsum(s.map(([t,x])=>x/Math.pow(1+r,t)))-vf;let lo=-0.99,hi=1e6;if(f(lo)<0||f(hi)>0)err("no rate equates the two values");
+    const pvAt=r=>{const a=[];for(const[t,x]of s){const d=Math.pow(1+r,t);if(d===Infinity)continue;if(d===0){if(x>0)return Infinity;continue;}a.push(x/d);}if(a.some(y=>!isFinite(y)))return Infinity;return fsum(a);};
+    const f=r=>pvAt(r)-vf;let lo=-0.99,hi=1e6;if(f(lo)<0||f(hi)>0)err("no rate equates the two values");
     for(let i=0;i<200;i++){const m=(lo+hi)/2;if(f(m)>0)lo=m;else hi=m;}return(lo+hi)/2;};
   const bundle=(c,vf,vo,h)=>{const K=ratio(vf,vo);return{c,horizon:h,v_fair:vf,v_own:vo,K,gain:gain(c,K,h),growth_factor_benchmark:Math.pow(1+c,h),growth_factor_expected:Math.pow(1+c,h)*K,expected_return_per_period:(1+c)*Math.pow(K,1/h)-1,c_eff:ceff(c,K,h)};};
   const fromForecasts=(c,b,o)=>{c=rate(c);b=stream(b);o=stream(o);const h=Math.max(...b.concat(o).map(x=>x[0]));const r=bundle(c,pv(b,c),pv(o,c),h);try{r.c_eff_stream=ceffStream(o,r.v_fair);}catch(e){r.c_eff_stream=null;}return r;};

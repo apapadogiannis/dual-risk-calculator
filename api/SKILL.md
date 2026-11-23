@@ -17,7 +17,7 @@ series of total-return prices.
 
 ## Steps
 
-1. If the tools of the MCP server `dual-risk-dcf` are available, use them and do not do the
+1. If the tools of the MCP server `dual-risk` are available, use them and do not do the
    arithmetic yourself:
 - `compare_forecasts`: Split the gap between two forecasts of the same asset into c and K.
 - `compare_with_price`: Set a forecast against an observed price.

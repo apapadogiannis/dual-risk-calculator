@@ -151,9 +151,14 @@ The `check` workflow runs on every push. The page is published only if all of it
   [replication package](https://github.com/apapadogiannis/dual-risk-dcf) and must reproduce its
   stored weekly series and its statistics of K, for all three assets.
 - The page and the server are two implementations, in JavaScript and Python. Both are run on the
-  same generated cases and every number must agree to a relative 1e-9.
+  same generated cases and every number must agree to a relative 1e-9. The cases include streams of
+  52 to 600 periods, such as a monthly forecast over many years.
 - The server is started over stdio, every tool is called, and the answers are compared with the
-  Python module.
+  Python module. Every tool must describe its parameters and its output fields, and inputs the
+  formulas are not defined for (a value that is not a number, a growth rate at or below -100%, a
+  benefit that is not a [time, amount] pair) must come back as a sentence, not as a crash.
+- A rate above 1 is computed as given and returned with a warning, since it is usually a percentage
+  typed as a whole number (8 for 0.08).
 
 The check shows that the tool computes the article's formulas. It does not show that a forecast or
 a benchmark rate you enter is right.

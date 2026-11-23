@@ -15,6 +15,11 @@ for _ in range(40):
     add("fromForecasts", [c, bench, own], d.from_forecasts(c, bench, own))
     price = rnd.uniform(200, 2000)
     add("againstPrice", [c, bench, price], d.against_price(c, bench, price))
+for n in (52, 60, 120, 162, 240, 600):      # long streams: monthly forecasts over many years
+    c = rnd.uniform(0.001, 0.02)
+    bench = [[t, rnd.uniform(50, 200)] for t in range(1, n + 1)]
+    own = [[t, x * rnd.uniform(0.5, 1.6)] for t, x in bench]
+    add("fromForecasts", [c, bench, own], d.from_forecasts(c, bench, own))
 for _ in range(12):
     n = rnd.randint(140, 400); ppy = rnd.choice([12, 52]); p = [100.0]
     for _ in range(n): p.append(p[-1] * math.exp(rnd.gauss(0.002, 0.03)))

@@ -5,7 +5,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 import build
 from dualrisk import core
-from dualrisk.server import REGISTRY
+from dualrisk.server import NAME, REGISTRY
 
 with tempfile.TemporaryDirectory() as tmp:
     out, api = pathlib.Path(tmp) / "site", pathlib.Path(tmp) / "api"
@@ -15,9 +15,10 @@ with tempfile.TemporaryDirectory() as tmp:
     guide, skill, page = (api / "llms.txt").read_text(), (api / "SKILL.md").read_text(), (out / "index.html").read_text()
 import json
 ex = json.loads((ROOT / "api" / "example.json").read_text())
-again = core.from_forecasts(ex["inputs"]["c"], ex["inputs"]["benchmark"], ex["inputs"]["examined"])
+again = core.from_forecasts(ex["inputs"]["c"], ex["inputs"]["benchmark"], ex["inputs"]["own"])
 assert all(abs(ex["results"][k] - again[k]) < 1e-9 for k in ex["fields"]), "example.json does not follow from its inputs"
-cfg = json.loads((ROOT / "mcp.json").read_text())["mcpServers"]["dual-risk"]
+cfg = json.loads((ROOT / "mcp.json").read_text())["mcpServers"][NAME]
+assert f"`{NAME}`" in guide and f"`{NAME}`" in skill and f"claude mcp add {NAME} " in (ROOT / "README.md").read_text(), "one server name everywhere"
 assert " ".join([cfg["command"], *cfg["args"]]) == build.INSTALL and build.INSTALL in (ROOT / "README.md").read_text()
 assert len(REGISTRY) == 6
 for name, _ in REGISTRY:

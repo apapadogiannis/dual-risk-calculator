@@ -11,8 +11,15 @@ async def main():
     params = StdioServerParameters(command=sys.executable, args=["-m", "dualrisk.server"], cwd=str(ROOT))
     async with stdio_client(params) as (r, w):
         async with ClientSession(r, w) as s:
-            await s.initialize()
+            init = await s.initialize()
+            from dualrisk import __version__
+            from dualrisk.server import NAME
+            assert init.server_info.name == NAME and init.server_info.version == __version__, init.server_info
             tools = (await s.list_tools()).tools
+            for t in tools:
+                assert t.output_schema and "K" in t.output_schema["properties"], f"{t.name} has no output schema"
+                for arg, spec in t.input_schema["properties"].items():
+                    assert spec.get("description"), f"{t.name}.{arg} has no description"
             print("tools:", [t.name for t in tools])
             results = {}
             calls = {
@@ -36,5 +43,17 @@ async def main():
             assert results["price_history"]["rows_computed"] == 148 and "rows" not in results["price_history"]
             bad = await s.call_tool("perpetuity", {"c": .02, "growth": .05, "benefit_fair": 1, "benefit_own": 1})
             assert bad.is_error and "growth rate must be below c" in bad.content[0].text
+            for name, args, words in (
+                    ("compare_forecasts", {"c": .08, "benchmark": [[1]], "own": [[1, 2]]}, "[time, amount] pair"),
+                    ("compare_with_price", {"c": .08, "benchmark": [[1e-9, 100]], "price": 50}, "too large"),
+                    ("perpetuity", {"c": .08, "growth": -1.5, "benefit_fair": 100, "benefit_own": 90}, "above -100%")):
+                bad = await s.call_tool(name, args)
+                assert bad.is_error and words in bad.content[0].text, (name, bad.content[0].text)
+            month = [[t, 100] for t in range(1, 61)]
+            res = await s.call_tool("compare_forecasts", {"c": .007, "benchmark": month, "own": [[t, 90] for t, _ in month]})
+            assert not res.is_error and json.loads(res.content[0].text)["c_eff_stream"] is not None, "a 60-month stream must be solved"
+            res = await s.call_tool("compare_forecasts", {"c": 8, "benchmark": [[1, 100]], "own": [[1, 90]]})
+            assert "0.08" in json.loads(res.content[0].text)["warnings"][0], "a rate typed as a percentage must be flagged"
+            assert results["perpetuity"]["warnings"] == [] and "c_eff_stream" not in results["perpetuity"]
             print(f"server answers on {len(tools)} tools and agrees with dualrisk.core; a refused input is explained in words")
 asyncio.run(main())

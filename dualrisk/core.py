@@ -25,7 +25,16 @@ class InputError(ValueError):
 def _stream(benefits):
     out = []
     for item in benefits:
-        t, x = float(item[0]), float(item[1])
+        try:
+            pair = tuple(item)
+        except TypeError:
+            pair = ()
+        if len(pair) != 2:
+            raise InputError("each benefit must be a [time, amount] pair")
+        try:
+            t, x = float(pair[0]), float(pair[1])
+        except (TypeError, ValueError):
+            raise InputError("times and amounts must be finite numbers") from None
         if not (math.isfinite(t) and math.isfinite(x)):
             raise InputError("times and amounts must be finite numbers")
         if t <= 0:
@@ -41,6 +50,40 @@ def _rate(c, name="c"):
     if not math.isfinite(c) or c <= -1:
         raise InputError(f"{name} must be a rate above -100%")
     return c
+
+
+def _positive(x, what):
+    """A finite number above zero, or an InputError that names it."""
+    try:
+        x = float(x)
+    except (TypeError, ValueError):
+        raise InputError(f"{what} must be a positive number") from None
+    if not math.isfinite(x) or x <= 0:
+        raise InputError(f"{what} must be a positive number")
+    return x
+
+
+def _finite(x, what):
+    try:
+        x = float(x)
+    except (TypeError, ValueError):
+        raise InputError(f"{what} must be a finite number") from None
+    if not math.isfinite(x):
+        raise InputError(f"{what} must be a finite number")
+    return x
+
+
+def rate_warning(c, name="c"):
+    """Rates are decimals. A rate above 1 (100% per period) is almost always a
+    percentage typed as a whole number; this returns a sentence saying so, or None."""
+    try:
+        c = float(c)
+    except (TypeError, ValueError):
+        return None
+    if math.isfinite(c) and c > 1:
+        return (f"{name} = {c:g} was read as {c:.0%} per period. Rates are decimals: "
+                f"enter {c / 100:g} for {c:g}%.")
+    return None
 
 
 def present_value(benefits, c):
@@ -61,8 +104,11 @@ def terminal_equivalent(benefits, c, horizon=None):
 def valuation_ratio(v_fair, v_own):
     """K = V_fair / V_own. Article eq. (11). K > 1: the valuation is below the
     benchmark (pessimism, undervaluation). K < 1: above it (optimism)."""
-    v_fair, v_own = float(v_fair), float(v_own)
-    if v_fair <= 0 or v_own <= 0:
+    try:
+        v_fair, v_own = float(v_fair), float(v_own)
+    except (TypeError, ValueError):
+        raise InputError("both values must be positive for K to be defined") from None
+    if not (math.isfinite(v_fair) and math.isfinite(v_own)) or v_fair <= 0 or v_own <= 0:
         raise InputError("both values must be positive for K to be defined")
     return v_fair / v_own
 
@@ -70,36 +116,49 @@ def valuation_ratio(v_fair, v_own):
 def gain_of_capital(c, K, horizon):
     """g = (1+c)^h (K - 1). Article eq. (21): the wedge between the expected
     growth factor (1+c)^h K, eq. (20), and the benchmark growth factor."""
-    return (1 + _rate(c)) ** float(horizon) * (float(K) - 1)
+    return (1 + _rate(c)) ** _positive(horizon, "the horizon") * (_finite(K, "K") - 1)
 
 
 def ratio_from_gain(c, g, horizon):
     """K = 1 + g / (1+c)^h. Article eq. (24)."""
-    return 1 + float(g) / (1 + _rate(c)) ** float(horizon)
+    return 1 + _finite(g, "the gain") / (1 + _rate(c)) ** _positive(horizon, "the horizon")
 
 
 def effective_rate(c, K, horizon):
     """c_eff = (1+c) K^(-1/h) - 1. Article eq. (26), closed form under the
     terminal-equivalent normalization."""
-    K, h = float(K), float(horizon)
-    if K <= 0:
-        raise InputError("K must be positive")
-    if h <= 0:
-        raise InputError("the horizon must be positive")
+    K, h = _positive(K, "K"), _positive(horizon, "the horizon")
     return (1 + _rate(c)) * K ** (-1 / h) - 1
+
+
+def _pv_at(s, r):
+    """Present value of a non-negative stream at rate r, for the solver. A
+    discount factor too large for a float makes its term zero, and one too
+    small makes the value infinite, so far dates do not stop the search."""
+    terms = []
+    for t, x in s:
+        try:
+            d = (1 + r) ** t
+        except OverflowError:
+            continue
+        if d == 0.0:
+            if x > 0:
+                return math.inf
+            continue
+        terms.append(x / d)
+    return math.fsum(terms)
 
 
 def effective_rate_stream(own_benefits, v_fair, lo=-0.99, hi=1e6):
     """The rate r that makes the present value of the agent's own stream equal
     v_fair. Article eq. (25), the general definition. Found by bisection; needs
-    non-negative benefits that are not all zero, as the article requires."""
+    non-negative benefits that are not all zero, as the article requires. Works
+    for any number of periods (a monthly stream of many years included)."""
     s = _stream(own_benefits)
     if any(x < 0 for _, x in s) or not any(x > 0 for _, x in s):
         raise InputError("eq. (25) needs non-negative benefits that are not all zero")
-    v_fair = float(v_fair)
-    if v_fair <= 0:
-        raise InputError("the fair value must be positive")
-    f = lambda r: math.fsum(x / (1 + r) ** t for t, x in s) - v_fair
+    v_fair = _positive(v_fair, "the fair value")
+    f = lambda r: _pv_at(s, r) - v_fair
     if f(lo) < 0 or f(hi) > 0:
         raise InputError("no rate between -99% and 1e6 equates the two values")
     for _ in range(200):
@@ -120,6 +179,14 @@ def _reading(K):
 
 
 def _bundle(c, v_fair, v_own, h):
+    try:
+        return _bundle_unchecked(c, v_fair, v_own, h)
+    except (OverflowError, ZeroDivisionError):
+        raise InputError("the result is too large for these inputs: check the horizon, "
+                         "the rate and the two values") from None
+
+
+def _bundle_unchecked(c, v_fair, v_own, h):
     K = valuation_ratio(v_fair, v_own)
     return {
         "c": c, "horizon": h, "v_fair": v_fair, "v_own": v_own, "K": K,
@@ -154,18 +221,19 @@ def against_price(c, benchmark, price):
     expected_return_per_period is the rate implied by eq. (20)."""
     c = _rate(c)
     b = _stream(benchmark)
-    return _bundle(c, present_value(b, c), float(price), max(t for t, _ in b))
+    return _bundle(c, present_value(b, c), _positive(price, "the price"), max(t for t, _ in b))
 
 
 def perpetuity(c, growth, benefit_fair, benefit_own):
     """Constant-growth perpetuity with the same growth under both beliefs.
     Article eqs. (30) to (34)."""
-    c, gf = _rate(c), float(growth)
+    c, gf = _rate(c), _finite(growth, "the growth rate")
+    if gf <= -1:
+        raise InputError("the growth rate must be above -100%")
     if not gf < c:
         raise InputError("the growth rate must be below c for the value to converge")
-    bf, bo = float(benefit_fair), float(benefit_own)
-    if bf <= 0 or bo <= 0:
-        raise InputError("first-period benefits must be positive")
+    bf = _positive(benefit_fair, "first-period benefits")
+    bo = _positive(benefit_own, "first-period benefits")
     K = bf / bo
     return {"c": c, "growth": gf, "v_fair": bf / (c - gf), "v_own": bo / (c - gf), "K": K,
             "value_wedge": bf / (c - gf) - bo / (c - gf),
@@ -182,9 +250,13 @@ def clearing_price(v_fair, ratios, weights=None, supply=1.0, depth=1.0):
     w = [1.0] * len(ks) if weights is None else [float(x) for x in weights]
     if len(w) != len(ks) or any(x < 0 for x in w) or sum(w) <= 0:
         raise InputError("weights must match the K values and be non-negative")
-    depth, supply, v_fair = float(depth), float(supply), float(v_fair)
-    if depth <= 0:
-        raise InputError("market depth (lambda) must be positive")
+    if any(not math.isfinite(k) for k in ks) or any(not math.isfinite(x) for x in w):
+        raise InputError("K values and weights must be finite numbers")
+    v_fair = _positive(v_fair, "the fair value")
+    depth = _positive(depth, "market depth (lambda)")
+    supply = _finite(supply, "net supply")
+    if supply < 0:
+        raise InputError("net supply must not be negative")
     mean_inv = math.fsum(x / k for x, k in zip(w, ks)) / math.fsum(w)
     price = v_fair * mean_inv - supply / depth
     return {"mean_inverse_K": mean_inv, "mean_K": math.fsum(x * k for x, k in zip(w, ks)) / math.fsum(w),
@@ -197,9 +269,8 @@ def price_proxy(p_start, p_end, c, years=1.0):
     (38): K = P_T / (P_t (1+c)^h), g = P_T/P_t - (1+c)^h. `c` is per year and
     `years` is the horizon. raw_gain = K - 1 is the "raw gain" the article's back-test
     reports, eq. (44)."""
-    p0, p1, c, h = float(p_start), float(p_end), _rate(c), float(years)
-    if p0 <= 0 or p1 <= 0 or h <= 0:
-        raise InputError("prices and horizon must be positive")
+    p0, p1 = _positive(p_start, "prices"), _positive(p_end, "prices")
+    c, h = _rate(c), _positive(years, "the horizon")
     K = p1 / (p0 * (1 + c) ** h)
     return {"K": K, "gain": p1 / p0 - (1 + c) ** h, "raw_gain": K - 1,
             "c_eff": effective_rate(c, K, h), "realized_return_per_year": (p1 / p0) ** (1 / h) - 1}
@@ -250,16 +321,24 @@ def price_history(prices, periods_per_year=52, horizon_periods=None, c=None,
     Defaults follow the article: horizon one year, window two years, floor 3%.
     Rows without a full window or without a later price are left out.
     """
-    p = [float(x) for x in prices]
+    try:
+        p = [float(x) for x in prices]
+    except (TypeError, ValueError):
+        raise InputError("prices must be positive numbers") from None
     if any(not math.isfinite(x) or x <= 0 for x in p):
         raise InputError("prices must be positive numbers")
-    ppy = int(periods_per_year)
-    if ppy <= 0:
-        raise InputError("periods_per_year must be positive")
-    h = ppy if horizon_periods is None else int(horizon_periods)
-    w = 2 * ppy if window_periods is None else int(window_periods)
-    if h <= 0 or w <= 0:
-        raise InputError("horizon and window must be positive")
+    def whole(x, what):
+        x = _positive(x, what)
+        if x != int(x):
+            raise InputError(f"{what} must be a whole number")
+        return int(x)
+
+    ppy = whole(periods_per_year, "periods_per_year")
+    h = ppy if horizon_periods is None else whole(horizon_periods, "the horizon")
+    w = 2 * ppy if window_periods is None else whole(window_periods, "the window")
+    floor = _finite(floor, "the floor")
+    if floor <= -1:
+        raise InputError("the floor must be a rate above -100%")
     years = h / ppy
     fixed = None if c is None else _rate(c)
     first = 0 if fixed is not None else w

@@ -62,6 +62,29 @@ class Article(unittest.TestCase):
         self.assertAlmostEqual(own["rows"][0]["c"], max(0.03, (p[104] / p[0]) ** 0.5 - 1), places=14)
         self.assertTrue(all(r["c"] >= 0.03 for r in own["rows"]))
 
+    def test_long_streams_are_solved(self):
+        # A monthly stream of five years, and far longer ones: the solver must not stop at about 51 periods.
+        for n in (52, 60, 120, 162, 600, 2000):
+            b, o = [(t, 100) for t in range(1, n + 1)], [(t, 90) for t in range(1, n + 1)]
+            r = d.from_forecasts(0.007, b, o)
+            self.assertIsNotNone(r["c_eff_stream"], n)
+            self.assertAlmostEqual(d.present_value(o, r["c_eff_stream"]) / r["v_fair"], 1, places=9)
+            self.assertLess(r["c_eff_stream"], 0.007)
+
+    def test_rate_warning(self):
+        self.assertIsNone(d.rate_warning(0.08))
+        self.assertIn("0.08", d.rate_warning(8))
+
+    def test_out_of_domain_inputs_are_refused(self):
+        nan, inf = math.nan, math.inf
+        for call in (lambda: d.against_price(0.08, [(1, 100)], nan), lambda: d.valuation_ratio(nan, 1),
+                     lambda: d.perpetuity(0.08, -1.5, 100, 90), lambda: d.perpetuity(0.08, 0.02, inf, 90),
+                     lambda: d.clearing_price(-1, [1]), lambda: d.clearing_price(1, [1], supply=-1),
+                     lambda: d.price_history([1.0] * 300, 52.5), lambda: d.price_history([1.0] * 300, 52, floor=-2),
+                     lambda: d.from_forecasts(0.08, [[1]], [[1, 2]]), lambda: d.from_forecasts(0.08, [[1, 100, 3]], [[1, 2]]),
+                     lambda: d.against_price(0.08, [(1e-9, 100)], 50), lambda: d.effective_rate(0.08, nan, 5)):
+            self.assertRaises(d.InputError, call)
+
     def test_bad_inputs_are_refused(self):
         for call in (lambda: d.perpetuity(0.02, 0.05, 1, 1), lambda: d.valuation_ratio(1, 0),
                      lambda: d.present_value([(0, 1)], 0.05), lambda: d.price_history([1, 2, 3])):

@@ -14,7 +14,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 from dualrisk import __version__, core          # noqa: E402
-from dualrisk.server import REGISTRY            # noqa: E402
+from dualrisk.server import NAME, REGISTRY      # noqa: E402
 
 PAGE = "https://apapadogiannis.github.io/dual-risk-calculator/"
 REPO = "https://github.com/apapadogiannis/dual-risk-calculator"
@@ -56,13 +56,22 @@ there is no data feed.
   at the horizon. For benefits that arrive over several periods, solving the definition on the
   stream gives a different rate (`c_eff_stream`). For a level five-period stream forecast 10% low
   at c = 8%, the closed form gives {ex['c_eff']:.1%} and the definition {ex['c_eff_stream']:.1%}.
-- Inputs the formulas are not defined for (a growth rate at or above c, a non-positive value, a
-  series too short) are refused with a sentence that says why, not answered with a number.
+- `c_eff_stream` is null when the examined stream has a negative amount: the definition needs
+  non-negative benefits. Streams of any length are solved, monthly ones over many years included.
+- `expected_return_per_period` is (1+c) K^(1/h) - 1. It is exact for a single payoff at the horizon;
+  for a stream bought at a price it is not the internal rate of return.
+- Inputs the formulas are not defined for (a growth rate at or above c or at or below -100%, a value
+  that is not a positive number, a series too short) are refused with a sentence that says why, not
+  answered with a number.
+- A rate above 1 is computed as given and flagged in `warnings`, since it is usually a percentage
+  typed as a whole number (8 for 0.08). Report the warning to the user.
 
 ## How to use it
 
-1. As an MCP server on the user's own machine (stdio, no network access):
+1. As an MCP server on the user's own machine (stdio, no network access), named `{NAME}`:
    `{INSTALL}`
+   Every tool describes its parameters and returns one record with described fields (the output
+   schema), plus `warnings`, `source` and `note`.
    Tools:
 {tools}
 2. As a page for a person: {PAGE}
@@ -131,7 +140,7 @@ series of total-return prices.
 
 ## Steps
 
-1. If the tools of the MCP server `dual-risk-dcf` are available, use them and do not do the
+1. If the tools of the MCP server `{NAME}` are available, use them and do not do the
    arithmetic yourself:
 {tools}
 2. If they are not, tell the user the server can be added with
@@ -179,7 +188,7 @@ def example() -> str:
     return json.dumps({
         "what": "A worked example of the Dual-Risk DCF Calculator: two forecasts of the same asset, the examined "
                 "one 10% below the benchmark in every year, both discounted at the benchmark rate.",
-        "inputs": {"c": c, "benchmark": bench, "examined": own, "periods": "years"},
+        "inputs": {"c": c, "benchmark": bench, "own": own, "periods": "years"},
         "results": r,
         "fields": {"v_fair": "present value of the benchmark forecast at c",
                    "v_own": "present value of the examined forecast at c",
