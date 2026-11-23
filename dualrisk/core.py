@@ -207,8 +207,8 @@ def price_proxy(p_start, p_end, c, years=1.0):
 
 def describe(values):
     """count, mean, std, min, quartiles, max and skewness, computed as the
-    article's tables are (sample standard deviation, bias-adjusted skewness,
-    quartiles by linear interpolation)."""
+    article's tables are: sample standard deviation (n - 1), quartiles by
+    linear interpolation, and skewness m3 / m2^1.5 with no bias adjustment."""
     v = sorted(float(x) for x in values)
     n = len(v)
     if n == 0:
@@ -228,7 +228,7 @@ def describe(values):
         out["std"] = math.sqrt(m2 / (n - 1))
         if n > 2 and m2 > 0:
             m3 = math.fsum((x - mean) ** 3 for x in v)
-            out["skew"] = (n * math.sqrt(n - 1) / (n - 2)) * m3 / m2 ** 1.5
+            out["skew"] = math.sqrt(n) * m3 / m2 ** 1.5
     return out
 
 
@@ -238,12 +238,17 @@ def price_history(prices, periods_per_year=52, horizon_periods=None, c=None,
 
     For each date t with a price `horizon_periods` later:
       c_t   = `c` if a fixed annual rate is given; otherwise the article's
-              self-referential proxy max(floor, exp(ppy * mean of the
-              `window_periods` log returns up to t-1) - 1), the rule printed
-              under eq. (42);
+              self-referential proxy max(floor, (P_t / P_{t-w})^(ppy/w) - 1):
+              the annualized return over the trailing window of w periods
+              ending at t. This is the rule the article's back-test ran. It
+              equals exp(ppy * mean log return) - 1, the form printed under
+              eq. (42), taken over the w returns ending at t (the printed
+              index stops at t-1);
       K_t   = P_{t+h} / (P_t (1+c_t)^years), eq. (43) for one year;
       raw_gain = K_t - 1, eq. (44); gain = (1+c_t)^years (K_t - 1), eq. (37);
-      c_eff = (1+c_t) K_t^(-1/years) - 1, per year, eq. (26).
+      c_eff = (1+c_t) K_t^(-1/years) - 1, per year, eq. (26). For one year
+              this is (1+c_t)/K_t - 1, the quantity in the article's Fig. 6
+              and Table 5 (eq. 45 prints a power of 1/52 that was not applied).
     Defaults follow the article: horizon one year, window two years, floor 3%.
     Rows without a full window or without a later price are left out.
     """
@@ -259,16 +264,15 @@ def price_history(prices, periods_per_year=52, horizon_periods=None, c=None,
         raise InputError("horizon and window must be positive")
     years = h / ppy
     fixed = None if c is None else _rate(c)
-    first = 0 if fixed is not None else w + 1
+    first = 0 if fixed is not None else w
     if len(p) <= first + h:
         raise InputError(f"the series is too short: {len(p)} prices, at least {first + h + 1} needed")
-    logret = [0.0] + [math.log(p[i] / p[i - 1]) for i in range(1, len(p))]
     rows = []
     for t in range(first, len(p) - h):
         if fixed is not None:
             ct = fixed
         else:
-            ct = max(float(floor), math.exp(ppy * math.fsum(logret[t - w:t]) / w) - 1)
+            ct = max(float(floor), (p[t] / p[t - w]) ** (ppy / w) - 1)
         K = p[t + h] / (p[t] * (1 + ct) ** years)
         rows.append({"index": t, "c": ct, "K": K, "raw_gain": K - 1,
                      "gain": (1 + ct) ** years * (K - 1),

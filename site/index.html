@@ -196,13 +196,13 @@ const DR=(()=>{
   const describe=vals=>{const v=vals.map(Number).sort((a,b)=>a-b),n=v.length;if(!n)return{count:0};const mean=fsum(v)/n;
     const q=p=>{const pos=(n-1)*p,lo=Math.floor(pos),hi=Math.min(lo+1,n-1);return v[lo]+(v[hi]-v[lo])*(pos-lo);};
     const o={count:n,mean,std:null,min:v[0],q25:q(.25),median:q(.5),q75:q(.75),max:v[n-1],skew:null};
-    if(n>1){const m2=fsum(v.map(x=>(x-mean)**2));o.std=Math.sqrt(m2/(n-1));if(n>2&&m2>0){const m3=fsum(v.map(x=>(x-mean)**3));o.skew=(n*Math.sqrt(n-1)/(n-2))*m3/Math.pow(m2,1.5);}}return o;};
+    if(n>1){const m2=fsum(v.map(x=>(x-mean)**2));o.std=Math.sqrt(m2/(n-1));if(n>2&&m2>0){const m3=fsum(v.map(x=>(x-mean)**3));o.skew=Math.sqrt(n)*m3/Math.pow(m2,1.5);}}return o;};
   const priceHistory=(prices,ppy=52,h=null,c=null,w=null,floor=0.03)=>{const p=prices.map(Number);if(p.some(x=>!isFinite(x)||x<=0))err("prices must be positive numbers");
     ppy=Math.trunc(ppy);if(!(ppy>0))err("rows per year must be positive");h=h==null?ppy:Math.trunc(h);w=w==null?2*ppy:Math.trunc(w);if(!(h>0)||!(w>0))err("horizon and window must be positive");
-    const years=h/ppy,fixed=c==null?null:rate(c),first=fixed!=null?0:w+1;
+    const years=h/ppy,fixed=c==null?null:rate(c),first=fixed!=null?0:w;
     if(p.length<=first+h)err(`the series is too short: ${p.length} prices, at least ${first+h+1} needed`);
-    const lr=[0];for(let i=1;i<p.length;i++)lr.push(Math.log(p[i]/p[i-1]));const rows=[];
-    for(let t=first;t<p.length-h;t++){const ct=fixed!=null?fixed:Math.max(floor,Math.exp(ppy*fsum(lr.slice(t-w,t))/w)-1);const K=p[t+h]/(p[t]*Math.pow(1+ct,years));
+    const rows=[];
+    for(let t=first;t<p.length-h;t++){const ct=fixed!=null?fixed:Math.max(floor,Math.pow(p[t]/p[t-w],ppy/w)-1);const K=p[t+h]/(p[t]*Math.pow(1+ct,years));
       rows.push({index:t,c:ct,K,raw_gain:K-1,gain:Math.pow(1+ct,years)*(K-1),c_eff:(1+ct)*Math.pow(K,-1/years)-1});}
     const summary={};for(const k of["c","K","raw_gain","gain","c_eff"])summary[k]=describe(rows.map(r=>r[k]));
     return{periods_per_year:ppy,horizon_periods:h,horizon_years:years,rows,summary};};

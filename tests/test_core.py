@@ -6,7 +6,7 @@ from dualrisk import core as d
 
 class Article(unittest.TestCase):
     def test_iso_gain_figure(self):
-        # Section 6.1, text under Fig. 5: at c = 10% and five years, g = 0.2 gives K of about 1.12
+        # Section 6.1, text under Fig. 3: at c = 10% and five years, g = 0.2 gives K of about 1.12
         # and g = -0.2 gives K of about 0.88.
         self.assertEqual(round(d.ratio_from_gain(0.10, 0.2, 5), 2), 1.12)
         self.assertEqual(round(d.ratio_from_gain(0.10, -0.2, 5), 2), 0.88)
@@ -58,7 +58,8 @@ class Article(unittest.TestCase):
         row = h["rows"][17]
         self.assertAlmostEqual(row["K"], d.price_proxy(p[17], p[17 + 52], 0.06, 1)["K"], places=12)
         own = d.price_history(p, 52)
-        self.assertEqual(own["rows"][0]["index"], 105)
+        self.assertEqual(own["rows"][0]["index"], 104)
+        self.assertAlmostEqual(own["rows"][0]["c"], max(0.03, (p[104] / p[0]) ** 0.5 - 1), places=14)
         self.assertTrue(all(r["c"] >= 0.03 for r in own["rows"]))
 
     def test_bad_inputs_are_refused(self):

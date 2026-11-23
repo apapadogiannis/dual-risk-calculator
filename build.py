@@ -82,10 +82,11 @@ there is no data feed.
 - K > 1 gives c_eff below c, and K < 1 gives c_eff above c. c_eff is the rate a one-rate DCF would
   need in order to turn the examined forecast into the fair value. It is not an expected return.
 - In the price history, `raw_gain` is K - 1, the quantity the article's tables call the raw gain;
-  `gain` is (1+c)^years (K - 1). `c` and `c_eff` are per year. Statistics use the sample standard
-  deviation, bias-adjusted skewness and linearly interpolated quartiles.
-- With no fixed c, the price history uses the article's rule: the annualized mean of the trailing
-  log returns up to the previous period, with a floor. That benchmark comes from the asset's own
+  `gain` is (1+c)^years (K - 1). `c` and `c_eff` are per year. Statistics are computed as in the
+  article's tables: sample standard deviation, linearly interpolated quartiles, and skewness
+  without bias adjustment.
+- With no fixed c, the price history uses the rule of the article's back-test: the annualized
+  return over the trailing window ending at the date, with a floor. That benchmark comes from the asset's own
   past return, which the article accepts only for assets with no close substitute.
 
 ## Do not use this for
