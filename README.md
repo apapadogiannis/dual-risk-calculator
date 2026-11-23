@@ -50,6 +50,8 @@ doing the arithmetic yourself, how to read each figure, and what not to use it f
 | `market_clearing_price` | the price that clears a market of agents with different K |
 | `price_history` | the article's back-test on a series of total-return prices |
 
+`api/example.json` is one worked case with its inputs and results.
+
 `dualrisk/core.py` is the same set of formulas as a Python module with no dependencies. The guide
 and the skill are written by `build.py` and checked by the tests. Do not edit them by hand.
 
@@ -111,7 +113,7 @@ dualrisk/core.py           the formulas, each with the equation of the article i
 dualrisk/server.py         the MCP server
 site/index.html            the page, with the same formulas in JavaScript
 build.py                   builds the site and writes the guide and the skill
-api/                       llms.txt (the guide) and SKILL.md (the skill)
+api/                       llms.txt (the guide), SKILL.md (the skill) and example.json (a worked case)
 tests/test_core.py         checks against the article
 tests/test_continuity.py   the price history against the stored results in reference/
 reference/                 weekly prices and results of the article's replication package

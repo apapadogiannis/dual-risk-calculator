@@ -6,6 +6,7 @@
 The guide (llms.txt) and the skill (SKILL.md) are written here and never by hand. The list of
 tools in them is read from the server itself.
 """
+import json
 import pathlib
 import shutil
 import sys
@@ -168,12 +169,33 @@ Page: {PAGE}  Code: {REPO}  Author: Agisilaos Papadogiannis
 """
 
 
+def example() -> str:
+    """api/example.json: one worked case, computed here, for pages that describe the calculator."""
+    c, bench = 0.08, [[t, 100.0] for t in range(1, 6)]
+    own = [[t, 90.0] for t in range(1, 6)]
+    r = core.from_forecasts(c, bench, own)
+    r.pop("reading")
+    return json.dumps({
+        "what": "A worked example of the Dual-Risk DCF Calculator: two forecasts of the same asset, the examined "
+                "one 10% below the benchmark in every year, both discounted at the benchmark rate.",
+        "inputs": {"c": c, "benchmark": bench, "examined": own, "periods": "years"},
+        "results": r,
+        "fields": {"v_fair": "present value of the benchmark forecast at c",
+                   "v_own": "present value of the examined forecast at c",
+                   "K": "valuation ratio, v_fair / v_own",
+                   "gain": "gain of capital over the whole horizon, (1+c)^h (K-1)",
+                   "c_eff": "effective rate, closed form (1+c) K^(-1/h) - 1, a fraction a year",
+                   "c_eff_stream": "effective rate solved on the yearly amounts, a fraction a year",
+                   "expected_return_per_period": "(1+c) K^(1/h) - 1, a fraction a year"},
+        "page": PAGE, "licence": "CC BY 4.0", "cite_as": CITE}, indent=1) + "\n"
+
+
 def build(out: pathlib.Path, api: pathlib.Path) -> None:
     out.mkdir(parents=True, exist_ok=True)
     api.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(ROOT / "site" / "index.html", out / "index.html")
     (out / ".nojekyll").write_text("")
-    for name, text in (("llms.txt", guide()), ("SKILL.md", skill())):
+    for name, text in (("llms.txt", guide()), ("SKILL.md", skill()), ("example.json", example())):
         (api / name).write_text(text)
         (out / name).write_text(text)
 

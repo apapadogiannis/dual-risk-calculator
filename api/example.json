@@ -1,0 +1,76 @@
+{
+ "what": "A worked example of the Dual-Risk DCF Calculator: two forecasts of the same asset, the examined one 10% below the benchmark in every year, both discounted at the benchmark rate.",
+ "inputs": {
+  "c": 0.08,
+  "benchmark": [
+   [
+    1,
+    100.0
+   ],
+   [
+    2,
+    100.0
+   ],
+   [
+    3,
+    100.0
+   ],
+   [
+    4,
+    100.0
+   ],
+   [
+    5,
+    100.0
+   ]
+  ],
+  "examined": [
+   [
+    1,
+    90.0
+   ],
+   [
+    2,
+    90.0
+   ],
+   [
+    3,
+    90.0
+   ],
+   [
+    4,
+    90.0
+   ],
+   [
+    5,
+    90.0
+   ]
+  ],
+  "periods": "years"
+ },
+ "results": {
+  "c": 0.08,
+  "horizon": 5.0,
+  "v_fair": 399.27100370780846,
+  "v_own": 359.34390333702765,
+  "K": 1.111111111111111,
+  "gain": 0.16325867519999981,
+  "growth_factor_benchmark": 1.4693280768000005,
+  "growth_factor_expected": 1.6325867520000004,
+  "expected_return_per_period": 0.10299934260814592,
+  "c_eff": 0.05748023134985503,
+  "c_eff_stream": 0.041241011068631095
+ },
+ "fields": {
+  "v_fair": "present value of the benchmark forecast at c",
+  "v_own": "present value of the examined forecast at c",
+  "K": "valuation ratio, v_fair / v_own",
+  "gain": "gain of capital over the whole horizon, (1+c)^h (K-1)",
+  "c_eff": "effective rate, closed form (1+c) K^(-1/h) - 1, a fraction a year",
+  "c_eff_stream": "effective rate solved on the yearly amounts, a fraction a year",
+  "expected_return_per_period": "(1+c) K^(1/h) - 1, a fraction a year"
+ },
+ "page": "https://apapadogiannis.github.io/dual-risk-calculator/",
+ "licence": "CC BY 4.0",
+ "cite_as": "A. Papadogiannis (2026), \"Dual-Risk DCF Calculator\", version 1.0.1, Zenodo, https://doi.org/10.5281/zenodo.24465124, together with the article: A. Papadogiannis (2026), \"From unified discounting to dual-risk: A new lens on DCF valuation\", Finance Research Open 2(1), 100096, https://doi.org/10.1016/j.finr.2026.100096"
+}

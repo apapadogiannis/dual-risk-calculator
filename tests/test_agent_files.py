@@ -10,9 +10,13 @@ from dualrisk.server import REGISTRY
 with tempfile.TemporaryDirectory() as tmp:
     out, api = pathlib.Path(tmp) / "site", pathlib.Path(tmp) / "api"
     build.build(out, api)
-    for name in ("llms.txt", "SKILL.md"):
+    for name in ("llms.txt", "SKILL.md", "example.json"):
         assert (ROOT / "api" / name).read_text() == (api / name).read_text(), f"api/{name} is not what the build writes; run build.py"
     guide, skill, page = (api / "llms.txt").read_text(), (api / "SKILL.md").read_text(), (out / "index.html").read_text()
+import json
+ex = json.loads((ROOT / "api" / "example.json").read_text())
+again = core.from_forecasts(ex["inputs"]["c"], ex["inputs"]["benchmark"], ex["inputs"]["examined"])
+assert all(ex["results"][k] == again[k] for k in ex["fields"]), "example.json does not follow from its inputs"
 assert len(REGISTRY) == 6
 for name, _ in REGISTRY:
     assert name in guide and name in skill, name
