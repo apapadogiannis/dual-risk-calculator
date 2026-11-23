@@ -1,0 +1,7 @@
+_site/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+tests/vectors.json
+.DS_Store

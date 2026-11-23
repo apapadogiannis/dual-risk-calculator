@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dual-risk-calculator"
+version = "1.0.0"
+description = "Dual-risk DCF calculations (benchmark rate c and valuation ratio K), with an MCP server"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{ name = "Agisilaos Papadogiannis" }]
+dependencies = ["mcp>=2,<3"]
+
+[project.urls]
+Homepage = "https://apapadogiannis.github.io/dual-risk-calculator/"
+Repository = "https://github.com/apapadogiannis/dual-risk-calculator"
+
+[project.scripts]
+dual-risk-mcp = "dualrisk.server:main"
+
+[tool.setuptools]
+packages = ["dualrisk"]

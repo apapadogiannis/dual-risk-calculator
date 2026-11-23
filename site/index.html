@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dual-Risk DCF Calculator: the discount rate and the forecast, separated</title>
+<meta name="description" content="Split a valuation gap into the benchmark cost of capital c and the valuation ratio K, from your own forecasts or your own price series. Computed in your browser; nothing you enter leaves the page.">
+<link rel="alternate" type="text/plain" href="llms.txt" title="Guide for AI agents">
+<style>
+:root{color-scheme:light;--page:#f6f5f1;--surface:#fcfcfb;--line:#e1e0d9;--axis:#c3c2b7;--ink:#0b0b0b;--ink2:#52514e;--mut:#898781;--blue:#2a78d6;--orange:#eb6834;--aqua:#1baf7a;--band:#cde2fb}
+@media (prefers-color-scheme:dark){:root{color-scheme:dark;--page:#121211;--surface:#1a1a19;--line:#2e2e2b;--axis:#52514e;--ink:#f0efec;--ink2:#c3c2b7;--mut:#898781;--blue:#3987e5;--orange:#d95926;--aqua:#199e70;--band:#173a66}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 18px 60px}
+h1{font-size:26px;line-height:1.2;margin:0 0 6px;letter-spacing:-.01em}
+h2{font-size:17px;margin:0 0 2px}
+h3{font-size:15px;margin:0 0 2px}
+a{color:inherit}
+.lede{color:var(--ink2);max-width:740px;margin:0 0 6px}
+.sub{color:var(--ink2);font-size:13.5px;margin:0 0 10px;max-width:760px}
+.method{font-size:12.5px;color:var(--mut);margin:8px 0 18px}
+.method a{color:var(--ink2)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 18px 14px;margin:0 0 16px}
+.site{display:flex;align-items:center;gap:6px 18px;flex-wrap:wrap;margin:0 0 22px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.site .brand{font-weight:700;font-size:15px}
+.site .brand small{font-weight:400;color:var(--mut);font-size:12.5px;margin-left:8px}
+.site nav{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+.site nav button{font:inherit;font-size:14px;color:var(--ink2);background:none;border:1px solid transparent;border-radius:999px;padding:5px 14px;cursor:pointer}
+.site nav button[aria-current="page"]{color:var(--surface);background:var(--ink)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.view{display:none}.view.on{display:block}
+.two{display:grid;grid-template-columns:1.15fr 1fr;gap:16px;align-items:start}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+label{font-size:13.5px;color:var(--ink2)}
+input[type=number],select,textarea{font:inherit;font-variant-numeric:tabular-nums;color:var(--ink);background:var(--page);border:1px solid var(--axis);border-radius:7px;padding:6px 8px;width:100%}
+textarea{min-height:150px;font:12.5px/1.4 ui-monospace,Menlo,Consolas,monospace}
+.field{display:grid;grid-template-columns:1fr 130px;gap:10px;align-items:center;margin:0 0 10px}
+.field small{display:block;color:var(--mut);font-size:12px}
+.seg{display:inline-flex;border:1px solid var(--axis);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg button{font:inherit;font-size:13.5px;color:var(--ink2);background:none;border:0;padding:6px 14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.btn{font:inherit;font-size:13.5px;color:var(--ink2);background:var(--surface);border:1px solid var(--axis);border-radius:999px;padding:5px 12px;cursor:pointer}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+th,td{padding:5px 6px;text-align:right;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left;white-space:nowrap}
+th{font-weight:600;color:var(--ink2);font-size:12.5px;vertical-align:bottom}
+table.in td{border:0;padding:3px 4px}
+table.in td:first-child{width:64px;color:var(--ink2)}
+.result{position:sticky;top:8px}
+.big{font-size:38px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.big small{font-size:13px;font-weight:400;color:var(--mut);margin-left:8px}
+.read{font-size:14px;margin:6px 0 12px}
+.bars{margin:12px 0 6px}
+.bars div{display:grid;grid-template-columns:118px 1fr 84px;gap:8px;align-items:center;font-size:12.5px;color:var(--ink2);margin:4px 0}
+.bars i{display:block;height:14px;border-radius:3px;min-width:2px}
+.bars b{text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.kv{display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:13.5px;font-variant-numeric:tabular-nums;border-top:1px solid var(--line);padding-top:10px;margin-top:10px}
+.kv span{color:var(--ink2)}.kv span small{display:block;color:var(--mut);font-size:12px}
+.kv b{font-weight:650;text-align:right}
+.note{font-size:12.5px;color:var(--mut);margin:10px 0 0}
+.err{color:var(--orange);font-size:13.5px;margin:8px 0}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:0 0 16px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.tile .k{font-size:12.5px;color:var(--ink2)}.tile .v{font-size:24px;font-weight:650}.tile .n{font-size:12px;color:var(--mut)}
+.chart svg{display:block;width:100%;height:auto}
+.scroll{overflow-x:auto}
+.term{border-left:3px solid var(--line);padding:2px 0 2px 14px;margin:0 0 18px;max-width:760px}
+.term h3 span{font-weight:400;color:var(--mut);font-size:13px;margin-left:6px}
+.term p{margin:0 0 6px;font-size:13.5px;color:var(--ink2)}
+.term .f{font:14px/1.6 ui-monospace,Menlo,Consolas,monospace;color:var(--ink);margin:4px 0}
+footer{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--mut)}
+footer p{margin:0 0 8px;max-width:860px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="site">
+  <div class="brand">Dual-Risk DCF Calculator<small>the discount rate and the forecast, separated</small></div>
+  <nav>
+    <button data-view="calc" aria-current="page">Calculator</button>
+    <button data-view="hist">Your price history</button>
+    <button data-view="eqs">The equations</button>
+  </nav>
+</div>
+
+<section class="view on" id="calc">
+  <h1>How much of a valuation gap is the forecast, and what would it take the discount rate to hide it?</h1>
+  <p class="lede">Enter a benchmark rate and two views of the same asset: two forecasts, or a forecast and a price. The page keeps the benchmark rate <b>c</b> fixed and puts the whole gap into one number, the valuation ratio <b>K</b>. From the two it derives the gain of capital <b>g</b> and the effective rate <b>c<sub>eff</sub></b>.</p>
+  <p class="method">Everything is computed in your browser. Nothing you enter is sent anywhere. · Method: <a href="https://doi.org/10.1016/j.finr.2026.100096" target="_blank" rel="noopener">From unified discounting to dual-risk</a> (Finance Research Open, 2026)</p>
+  <div class="two">
+    <div class="card">
+      <h2>Your inputs</h2>
+      <div class="field" style="margin-top:10px"><label for="c">Benchmark rate c, % a year<small>the return on the closest comparable alternative, set outside this asset</small></label><input id="c" type="number" step="0.1" value="8"></div>
+      <div class="row"><label>Compare the benchmark forecast with</label>
+        <span class="seg" id="mode"><button data-m="forecast" aria-pressed="true">another forecast</button><button data-m="price" aria-pressed="false">a price</button></span></div>
+      <div class="field" id="pricef" style="display:none"><label for="price">Price today<small>stands in for the valuation V</small></label><input id="price" type="number" step="any" value="350"></div>
+      <table class="in" id="rows"><thead><tr><th>Year</th><th>Benchmark forecast</th><th class="own">Forecast examined</th></tr></thead><tbody></tbody></table>
+      <div class="row"><button class="btn" id="add">+ year</button><button class="btn" id="del">− year</button>
+        <span class="own" style="font-size:13px;color:var(--ink2)">or set the examined forecast to benchmark ×</span><input class="own" id="mult" type="number" step="0.05" value="0.9" style="width:76px"><button class="btn own" id="apply">apply</button></div>
+      <p class="note">Benefits are whatever the asset pays in that year: cash flows, and in the last year the resale price. For an asset that pays nothing until it is sold, enter zeros and one final amount.</p>
+    </div>
+    <div class="card result">
+      <div id="cerr" class="err"></div>
+      <div id="cres">
+        <div class="k" style="font-size:12.5px;color:var(--ink2)">Valuation ratio</div>
+        <div class="big"><span id="K"></span><small>K = fair value ÷ valuation</small></div>
+        <p class="read" id="read"></p>
+        <div class="bars"><div><span>Benchmark fair value</span><i id="b1" style="background:var(--blue)"></i><b id="v1"></b></div><div><span id="l2">Valuation examined</span><i id="b2" style="background:var(--orange)"></i><b id="v2"></b></div></div>
+        <div class="kv">
+          <span>Gain of capital g<small id="gl"></small></span><b id="g"></b>
+          <span>Expected return a year, if the benchmark forecast is right<small>against c of <span id="cc"></span></small></span><b id="er"></b>
+          <span>Effective rate c<sub>eff</sub><small>the single rate that would make the examined view worth the fair value (closed form)</small></span><b id="ce"></b>
+          <span id="cesl">Effective rate, solved on the stream<small>the same question answered on the yearly amounts</small></span><b id="ces"></b>
+        </div>
+        <p class="note" id="cnote"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="hist">
+  <h1>What did a price series imply, looking back?</h1>
+  <p class="lede">Paste prices or choose a file. For every date that has a price one horizon later, the page computes the realized valuation ratio <b>K</b>: the later price, discounted at the benchmark rate, divided by the price on the date. This is the back-test of the article, run on your own series.</p>
+  <p class="method">A reading in hindsight: each K uses a price that was not known on its date. Use prices that include reinvested distributions (adjusted close). The file is read in your browser and is not uploaded.</p>
+  <div class="two">
+    <div class="card">
+      <h2>Your prices</h2>
+      <p class="sub">One row per date, oldest first: a date and a price, separated by a comma, tab or semicolon. A header row is fine.</p>
+      <textarea id="csv" spellcheck="false" placeholder="date,price&#10;2019-01-04,100.00&#10;2019-01-11,101.35"></textarea>
+      <div class="row"><input type="file" id="file" accept=".csv,.txt,.tsv" style="max-width:240px;font-size:13px"><button class="btn" id="example">load a made-up series</button></div>
+    </div>
+    <div class="card">
+      <h2>Settings</h2>
+      <div class="field" style="margin-top:10px"><label for="ppy">Rows per year<small id="ppyn">set from your dates when they can be read</small></label><select id="ppy"><option value="252">252 (daily)</option><option value="52" selected>52 (weekly)</option><option value="12">12 (monthly)</option><option value="4">4 (quarterly)</option><option value="1">1 (yearly)</option></select></div>
+      <div class="field"><label for="hy">Horizon, years</label><input id="hy" type="number" step="0.25" min="0.25" value="1"></div>
+      <div class="row"><label>Benchmark rate</label><span class="seg" id="cmode"><button data-m="fixed" aria-pressed="true">a rate I set</button><button data-m="own" aria-pressed="false">the asset's own trailing return</button></span></div>
+      <div class="field" id="cfixf"><label for="cfix">Benchmark rate c, % a year</label><input id="cfix" type="number" step="0.1" value="8"></div>
+      <div id="cownf" style="display:none">
+        <div class="field"><label for="wy">Trailing window, years</label><input id="wy" type="number" step="0.5" min="0.5" value="2"></div>
+        <div class="field"><label for="fl">Floor, % a year</label><input id="fl" type="number" step="0.5" value="3"></div>
+        <p class="note">This is the rule used in the article's illustration. It takes the benchmark from the asset's own past return, which the article accepts only for an asset with no close substitute, such as a broad index, gold or Bitcoin.</p>
+      </div>
+      <div class="row"><button class="btn" id="run" style="background:var(--ink);color:var(--surface);border-color:var(--ink)">Compute</button><button class="btn" id="dl" disabled>Download results (CSV)</button></div>
+      <div id="herr" class="err"></div>
+    </div>
+  </div>
+  <div id="hres" style="display:none">
+    <div class="tiles" id="htiles"></div>
+    <div class="card"><h2>Realized valuation ratio K by date</h2><p class="sub">Above 1: the price on that date turned out to be below the benchmark value of the later price. Below 1: above it.</p><div class="chart" id="kchart"></div></div>
+    <div class="card"><h2>Summary</h2><p class="sub" id="hsub"></p><div class="scroll"><table id="stats"></table></div></div>
+  </div>
+</section>
+
+<section class="view" id="eqs">
+  <h1>The equations, term by term</h1>
+  <p class="lede">A discounted cash flow value has a numerator, the expected benefits, and a denominator, the discount rate. One rate is usually asked to do two jobs: stand for what the money could earn elsewhere, and soak up doubts about the forecast. The framework gives each job its own number.</p>
+  <p class="method">Equation numbers are those of the published article.</p>
+  <div class="term"><h3>c <span>benchmark cost of capital</span></h3><p>The return given up by putting money in this asset and not in the closest comparable alternative. It comes from outside the asset: it does not move when your forecast of the asset moves.</p></div>
+  <div class="term"><h3>V<sup>fair</sup> <span>benchmark fair value, eq. (7)</span></h3><div class="f">V_fair = Σ E[Benefit_s] / (1 + c)^(s − t)</div><p>The benchmark forecast of each year's benefit, discounted at c back to today (t) and added up. "Fair" means measured against this benchmark forecast, nothing more.</p></div>
+  <div class="term"><h3>V <span>the valuation examined, eq. (10)</span></h3><p>The same sum with another forecast in the numerator and the same c in the denominator. A market price can stand in for it.</p></div>
+  <div class="term"><h3>K <span>valuation ratio, eq. (11)</span></h3><div class="f">K = V_fair / V</div><p>The whole gap between the two views in one number. K above 1: the valuation is below the benchmark value (a pessimistic forecast, or a price below fair value). K below 1: above it. K equal to 1: no gap. If the examined forecast is the benchmark forecast scaled by the same factor every year, K is one over that factor and does not depend on c.</p></div>
+  <div class="term"><h3>g <span>gain of capital, eqs. (20) and (21)</span></h3><div class="f">g = (1 + c)^h · (K − 1)</div><p>Over h years the benchmark grows a unit of money to (1 + c)^h. Buying at V what is worth V_fair grows it to (1 + c)^h · K. g is the difference between the two growth factors: 0.16 means 16 cents more per unit invested over the whole horizon, not per year.</p></div>
+  <div class="term"><h3>c<sub>eff</sub> <span>effective rate, eqs. (25) and (26)</span></h3><div class="f">c_eff = (1 + c) · K^(−1/h) − 1</div><p>The single discount rate that, applied to the examined forecast, would return the benchmark fair value. It is what a one-rate DCF would have to use to hide the gap. Eq. (26) is exact for one payoff at the horizon. When benefits arrive year by year, solving the definition, eq. (25), on the yearly amounts gives a somewhat different rate, and the calculator shows both.</p></div>
+  <div class="term"><h3>K from prices <span>eqs. (36) and (43)</span></h3><div class="f">K_t = P_(t+h) / ( P_t · (1 + c_t)^h )</div><p>For an asset whose whole benefit is its later price, the later price discounted at c is the fair value in hindsight, and the price on the date is the valuation. The article's illustration reports K − 1 as the "raw gain".</p></div>
+  <div class="term"><h3>What the numbers are not</h3><p>They describe the inputs. K says how far two views are apart at a given c; it does not say which view is right. The price-history reading needs the later price, so it cannot be computed for today. Nothing here is a forecast or a recommendation.</p></div>
+</section>
+
+<footer>
+  <p>Method: A. Papadogiannis (2026), "From unified discounting to dual-risk: A new lens on DCF valuation", <i>Finance Research Open</i> 2(1), 100096, <a href="https://doi.org/10.1016/j.finr.2026.100096" target="_blank" rel="noopener">doi.org/10.1016/j.finr.2026.100096</a>, open access under CC BY 4.0.</p>
+  <p>For programs and AI agents the same calculations are offered as an MCP server that runs on your own machine. The guide is <a href="llms.txt" target="_blank" rel="noopener">llms.txt</a>, the skill is <a href="SKILL.md" target="_blank" rel="noopener">SKILL.md</a>, and the code and install lines are at <a href="https://github.com/apapadogiannis/dual-risk-calculator" target="_blank" rel="noopener">github.com/apapadogiannis/dual-risk-calculator</a>.</p>
+  <p>Built and maintained by <a href="https://github.com/apapadogiannis" target="_blank" rel="noopener">Agisilaos Papadogiannis</a>, whose other research, with its data and code, is listed on that page.</p>
+  <p>© 2026 Agisilaos Papadogiannis. The text and figures of this page may be reused with credit under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>. The code is under the MIT License.</p>
+  <p>Independent research, for informational and academic purposes only. Not financial, investment, tax or legal advice, and not a recommendation to buy or sell any financial instrument.</p>
+</footer>
+</div>
+
+<script id="core">
+// The calculations, mirrored from dualrisk/core.py. A test runs both on the same cases.
+const DR=(()=>{
+  const fsum=a=>{let s=0,c=0;for(const x of a){const y=x-c,t=s+y;c=(t-s)-y;s=t;}return s;};
+  const err=m=>{throw new Error(m);};
+  const rate=c=>{c=+c;if(!isFinite(c)||c<=-1)err("the rate must be above -100%");return c;};
+  const stream=b=>{if(!b.length)err("the benefit stream is empty");return b.map(([t,x])=>{t=+t;x=+x;if(!isFinite(t)||!isFinite(x))err("times and amounts must be numbers");if(t<=0)err("benefit times must be after the valuation date");return[t,x];});};
+  const pv=(b,c)=>{c=rate(c);return fsum(stream(b).map(([t,x])=>x/Math.pow(1+c,t)));};
+  const ratio=(vf,vo)=>{if(!(vf>0)||!(vo>0))err("both values must be positive for K to be defined");return vf/vo;};
+  const gain=(c,K,h)=>Math.pow(1+rate(c),h)*(K-1);
+  const ratioFromGain=(c,g,h)=>1+g/Math.pow(1+rate(c),h);
+  const ceff=(c,K,h)=>{if(!(K>0))err("K must be positive");if(!(h>0))err("the horizon must be positive");return(1+rate(c))*Math.pow(K,-1/h)-1;};
+  const ceffStream=(own,vf)=>{const s=stream(own);if(s.some(([,x])=>x<0)||!s.some(([,x])=>x>0))err("needs non-negative benefits that are not all zero");if(!(vf>0))err("the fair value must be positive");
+    const f=r=>fsum(s.map(([t,x])=>x/Math.pow(1+r,t)))-vf;let lo=-0.99,hi=1e6;if(f(lo)<0||f(hi)>0)err("no rate equates the two values");
+    for(let i=0;i<200;i++){const m=(lo+hi)/2;if(f(m)>0)lo=m;else hi=m;}return(lo+hi)/2;};
+  const bundle=(c,vf,vo,h)=>{const K=ratio(vf,vo);return{c,horizon:h,v_fair:vf,v_own:vo,K,gain:gain(c,K,h),growth_factor_benchmark:Math.pow(1+c,h),growth_factor_expected:Math.pow(1+c,h)*K,expected_return_per_period:(1+c)*Math.pow(K,1/h)-1,c_eff:ceff(c,K,h)};};
+  const fromForecasts=(c,b,o)=>{c=rate(c);b=stream(b);o=stream(o);const h=Math.max(...b.concat(o).map(x=>x[0]));const r=bundle(c,pv(b,c),pv(o,c),h);try{r.c_eff_stream=ceffStream(o,r.v_fair);}catch(e){r.c_eff_stream=null;}return r;};
+  const againstPrice=(c,b,p)=>{c=rate(c);b=stream(b);return bundle(c,pv(b,c),+p,Math.max(...b.map(x=>x[0])));};
+  const describe=vals=>{const v=vals.map(Number).sort((a,b)=>a-b),n=v.length;if(!n)return{count:0};const mean=fsum(v)/n;
+    const q=p=>{const pos=(n-1)*p,lo=Math.floor(pos),hi=Math.min(lo+1,n-1);return v[lo]+(v[hi]-v[lo])*(pos-lo);};
+    const o={count:n,mean,std:null,min:v[0],q25:q(.25),median:q(.5),q75:q(.75),max:v[n-1],skew:null};
+    if(n>1){const m2=fsum(v.map(x=>(x-mean)**2));o.std=Math.sqrt(m2/(n-1));if(n>2&&m2>0){const m3=fsum(v.map(x=>(x-mean)**3));o.skew=(n*Math.sqrt(n-1)/(n-2))*m3/Math.pow(m2,1.5);}}return o;};
+  const priceHistory=(prices,ppy=52,h=null,c=null,w=null,floor=0.03)=>{const p=prices.map(Number);if(p.some(x=>!isFinite(x)||x<=0))err("prices must be positive numbers");
+    ppy=Math.trunc(ppy);if(!(ppy>0))err("rows per year must be positive");h=h==null?ppy:Math.trunc(h);w=w==null?2*ppy:Math.trunc(w);if(!(h>0)||!(w>0))err("horizon and window must be positive");
+    const years=h/ppy,fixed=c==null?null:rate(c),first=fixed!=null?0:w+1;
+    if(p.length<=first+h)err(`the series is too short: ${p.length} prices, at least ${first+h+1} needed`);
+    const lr=[0];for(let i=1;i<p.length;i++)lr.push(Math.log(p[i]/p[i-1]));const rows=[];
+    for(let t=first;t<p.length-h;t++){const ct=fixed!=null?fixed:Math.max(floor,Math.exp(ppy*fsum(lr.slice(t-w,t))/w)-1);const K=p[t+h]/(p[t]*Math.pow(1+ct,years));
+      rows.push({index:t,c:ct,K,raw_gain:K-1,gain:Math.pow(1+ct,years)*(K-1),c_eff:(1+ct)*Math.pow(K,-1/years)-1});}
+    const summary={};for(const k of["c","K","raw_gain","gain","c_eff"])summary[k]=describe(rows.map(r=>r[k]));
+    return{periods_per_year:ppy,horizon_periods:h,horizon_years:years,rows,summary};};
+  return{pv,ratio,gain,ratioFromGain,ceff,ceffStream,fromForecasts,againstPrice,describe,priceHistory};
+})();
+if(typeof module!=="undefined")module.exports=DR;
+</script>
+<script>
+const $=id=>document.getElementById(id);
+const num=(x,d=2)=>x==null||!isFinite(x)?"n/a":x.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const pct=(x,d=1)=>x==null||!isFinite(x)?"n/a":num(100*x,d)+"%";
+document.querySelectorAll(".site nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".site nav button").forEach(x=>x.removeAttribute("aria-current"));b.setAttribute("aria-current","page");document.querySelectorAll(".view").forEach(v=>v.classList.toggle("on",v.id===b.dataset.view));});
+const seg=(id,fn)=>$(id).querySelectorAll("button").forEach(b=>b.onclick=()=>{$(id).querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b));fn(b.dataset.m);});
+
+// ---- calculator
+let mode="forecast";
+const tb=$("rows").tBodies[0];
+function addRow(b=100,o=90){const tr=tb.insertRow(),n=tb.rows.length;tr.innerHTML=`<td>${n}</td><td><input type="number" step="any" value="${b}" aria-label="benchmark forecast, year ${n}"></td><td class="own"><input type="number" step="any" value="${o}" aria-label="forecast examined, year ${n}"></td>`;tr.querySelectorAll("input").forEach(i=>i.oninput=calc);showOwn();}
+function showOwn(){document.querySelectorAll(".own").forEach(e=>e.style.display=mode==="forecast"?"":"none");$("pricef").style.display=mode==="price"?"":"none";}
+function calc(){
+  const c=+$("c").value/100,rows=[...tb.rows].map((r,i)=>{const v=r.querySelectorAll("input");return[i+1,+v[0].value,+v[1].value];});
+  const bench=rows.map(r=>[r[0],r[1]]),own=rows.map(r=>[r[0],r[2]]);
+  try{
+    const r=mode==="forecast"?DR.fromForecasts(c,bench,own):DR.againstPrice(c,bench,+$("price").value);
+    $("cerr").textContent="";$("cres").style.display="";
+    $("K").textContent=num(r.K,3);
+    const gap=pct(Math.abs(1/r.K-1),1),what=mode==="price"?"The price":"The examined forecast";
+    $("read").textContent=Math.abs(r.K-1)<5e-7?`${what} is worth exactly the benchmark fair value. There is no gap to explain.`:r.K>1?`${what} is ${gap} below the benchmark fair value. In the article's terms: pessimism, or undervaluation.`:`${what} is ${gap} above the benchmark fair value. In the article's terms: optimism, or overvaluation.`;
+    const m=Math.max(r.v_fair,r.v_own);$("b1").style.width=100*r.v_fair/m+"%";$("b2").style.width=100*r.v_own/m+"%";
+    $("v1").textContent=num(r.v_fair);$("v2").textContent=num(r.v_own);$("l2").textContent=mode==="price"?"Price":"Valuation examined";
+    $("g").textContent=(r.gain>=0?"+":"")+num(r.gain,3);$("gl").textContent=`over ${r.horizon} year${r.horizon==1?"":"s"}: ${num(r.growth_factor_expected,3)} per unit invested, against ${num(r.growth_factor_benchmark,3)} at the benchmark rate`;
+    $("er").textContent=pct(r.expected_return_per_period);$("cc").textContent=pct(c);$("ce").textContent=pct(r.c_eff);
+    const show=mode==="forecast"&&r.c_eff_stream!=null;$("cesl").style.display=$("ces").style.display=show?"":"none";if(show)$("ces").textContent=pct(r.c_eff_stream);
+    $("cnote").textContent=show&&Math.abs(r.c_eff_stream-r.c_eff)>5e-4?"The two effective rates differ because the benefits arrive over several years. The closed form treats the stream as one amount at the horizon; the second line solves the definition on the yearly amounts.":"";
+  }catch(e){$("cerr").textContent=e.message;$("cres").style.display="none";}
+}
+seg("mode",m=>{mode=m;showOwn();calc();});
+$("add").onclick=()=>{const l=tb.rows[tb.rows.length-1],v=l?l.querySelectorAll("input"):null;addRow(v?v[0].value:100,v?v[1].value:90);calc();};
+$("del").onclick=()=>{if(tb.rows.length>1){tb.deleteRow(-1);calc();}};
+$("apply").onclick=()=>{const k=+$("mult").value;[...tb.rows].forEach(r=>{const v=r.querySelectorAll("input");v[1].value=+(v[0].value*k).toPrecision(10);});calc();};
+["c","price"].forEach(i=>$(i).oninput=calc);
+for(let i=0;i<5;i++)addRow();calc();
+
+// ---- price history
+let cmode="fixed",last=null,labels=[];
+seg("cmode",m=>{cmode=m;$("cfixf").style.display=m==="fixed"?"":"none";$("cownf").style.display=m==="own"?"":"none";});
+function parse(text){const dates=[],prices=[];for(const line of text.split(/\r?\n/)){const cells=line.trim().split(/[,;\t]+/).map(s=>s.trim()).filter(s=>s!=="");if(!cells.length)continue;const p=parseFloat(cells[cells.length-1]);if(!isFinite(p)||(cells.length>1&&!/\d/.test(cells[0])))continue;prices.push(p);dates.push(cells.length>1?cells[0]:String(prices.length));}return{dates,prices};}
+function guessPpy(dates){const t=dates.map(d=>Date.parse(d)).filter(isFinite);if(t.length<dates.length*0.9||t.length<3)return null;const gaps=[];for(let i=1;i<t.length;i++)gaps.push((t[i]-t[i-1])/864e5);gaps.sort((a,b)=>a-b);const m=gaps[gaps.length>>1];return m<=4?252:m<=10?52:m<=45?12:m<=120?4:1;}
+$("csv").oninput=()=>{const g=guessPpy(parse($("csv").value).dates);if(g){$("ppy").value=g;$("ppyn").textContent="read from your dates";}};
+$("file").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$("csv").value=r.result;$("csv").oninput();};r.readAsText(f);};
+$("example").onclick=()=>{let s=20260101,p=100;const out=["date,price (made up for illustration)"];const d=new Date(Date.UTC(2015,0,2));for(let i=0;i<420;i++){s=(s*1103515245+12345)%2147483648;const u=s/2147483648;s=(s*1103515245+12345)%2147483648;const z=Math.sqrt(-2*Math.log(u+1e-12))*Math.cos(2*Math.PI*s/2147483648);p*=Math.exp(0.0015+0.022*z);out.push(d.toISOString().slice(0,10)+","+p.toFixed(2));d.setUTCDate(d.getUTCDate()+7);}$("csv").value=out.join("\n");$("csv").oninput();};
+$("run").onclick=()=>{
+  $("herr").textContent="";
+  try{
+    const{dates,prices}=parse($("csv").value);if(prices.length<3)throw new Error("No prices found. Paste rows of date and price, or choose a file.");
+    const ppy=+$("ppy").value,h=Math.max(1,Math.round(+$("hy").value*ppy));
+    last=cmode==="fixed"?DR.priceHistory(prices,ppy,h,+$("cfix").value/100):DR.priceHistory(prices,ppy,h,null,Math.max(1,Math.round(+$("wy").value*ppy)),+$("fl").value/100);
+    labels=dates;render(prices.length);
+  }catch(e){$("herr").textContent=e.message;$("hres").style.display="none";$("dl").disabled=true;}
+};
+function render(n){
+  const r=last,s=r.summary,rows=r.rows;$("hres").style.display="";$("dl").disabled=false;
+  const above=rows.filter(x=>x.K>1).length/rows.length;
+  $("htiles").innerHTML=[["Dates with a result",rows.length,`of ${n} prices read`],["Median K",num(s.K.median,3),`from ${num(s.K.min,2)} to ${num(s.K.max,2)}`],["Dates with K above 1",pct(above,0),"price was below the later benchmark value"],["Median benchmark rate c",pct(s.c.median),cmode==="fixed"?"the rate you set":"the asset's own trailing return"]].map(t=>`<div class="tile"><div class="k">${t[0]}</div><div class="v">${t[1]}</div><div class="n">${t[2]}</div></div>`).join("");
+  $("hsub").textContent=`${labels[rows[0].index]} to ${labels[rows[rows.length-1].index]}, horizon ${r.horizon_years} year${r.horizon_years==1?"":"s"} (${r.horizon_periods} rows). Gain g is over the whole horizon; c and c_eff are per year.`;
+  const cols=[["count",0],["mean",4],["std",4],["min",4],["q25",4],["median",4],["q75",4],["max",4],["skew",2]],names={c:"Benchmark rate c",K:"Valuation ratio K",raw_gain:"Raw gain, K − 1",gain:"Gain of capital g",c_eff:"Effective rate c_eff"};
+  $("stats").innerHTML="<tr><th></th>"+cols.map(c=>`<th>${c[0]==="q25"?"25%":c[0]==="q75"?"75%":c[0]}</th>`).join("")+"</tr>"+Object.keys(names).map(k=>`<tr><td>${names[k]}</td>`+cols.map(c=>`<td>${num(s[k][c[0]],c[1])}</td>`).join("")+"</tr>").join("");
+  // chart of K
+  const W=1000,H=300,L=52,R=12,T=10,B=26,ks=rows.map(x=>x.K),lo=Math.min(...ks,1),hi=Math.max(...ks,1),log=hi/lo>20,f=v=>log?Math.log(v):v,y0=f(lo),y1=f(hi),pad=(y1-y0)*0.06||0.1;
+  const X=i=>L+(W-L-R)*i/Math.max(1,rows.length-1),Y=v=>T+(H-T-B)*(1-(f(v)-y0+pad)/(y1-y0+2*pad));
+  const ticks=log?[lo,Math.sqrt(lo*hi),hi]:[lo,(lo+hi)/2,hi];
+  $("kchart").innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Realized valuation ratio K by date">`+ticks.map(t=>`<line x1="${L}" x2="${W-R}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--line)"/><text x="${L-6}" y="${Y(t)+4}" text-anchor="end" font-size="12" fill="var(--mut)">${num(t,2)}</text>`).join("")+`<line x1="${L}" x2="${W-R}" y1="${Y(1)}" y2="${Y(1)}" stroke="var(--ink2)" stroke-dasharray="4 4"/><text x="${W-R}" y="${Y(1)-5}" text-anchor="end" font-size="12" fill="var(--ink2)">K = 1</text><polyline fill="none" stroke="var(--blue)" stroke-width="2" points="${rows.map((x,i)=>X(i).toFixed(1)+","+Y(x.K).toFixed(1)).join(" ")}"/><text x="${L}" y="${H-6}" font-size="12" fill="var(--mut)">${labels[rows[0].index]}</text><text x="${W-R}" y="${H-6}" text-anchor="end" font-size="12" fill="var(--mut)">${labels[rows[rows.length-1].index]}</text></svg>`+(log?'<p class="note">Vertical axis on a ratio (log) scale.</p>':"");
+}
+$("dl").onclick=()=>{const out=["date,c,K,raw_gain,gain,c_eff"].concat(last.rows.map(r=>[labels[r.index],r.c,r.K,r.raw_gain,r.gain,r.c_eff].join(",")));const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([out.join("\n")+"\n"],{type:"text/csv"}));a.download="dual_risk_results.csv";a.click();};
+</script>
+</body>
+</html>

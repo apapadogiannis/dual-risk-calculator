@@ -1,0 +1,66 @@
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: The formulas reproduce figures and identities of the article
+        run: python3 -I tests/test_core.py
+
+      - name: The page and the Python code give the same numbers
+        run: |
+          python3 -I tests/make_vectors.py
+          node tests/check_page.mjs
+
+      - name: The MCP server starts, answers and agrees with the Python code
+        run: python3 -I tests/test_server.py
+
+      - name: Build the page
+        run: |
+          python3 -I build.py
+          test -s _site/index.html
+
+      - name: The guide and the skill are the ones the build writes
+        run: python3 -I tests/test_agent_files.py
+
+      - name: Hand the built page to GitHub Pages
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site/
+
+  publish:
+    needs: check
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && !github.event.repository.private
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish the page
+        id: deployment
+        uses: actions/deploy-pages@v5

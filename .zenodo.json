@@ -1,0 +1,37 @@
+{
+  "title": "Dual-Risk DCF Calculator",
+  "upload_type": "software",
+  "description": "A calculator for the dual-risk reading of a discounted cash flow value. It keeps the benchmark discount rate c fixed and puts the gap between two views of an asset (two forecasts, or a forecast and a price) into one number, the valuation ratio K, then derives the gain of capital g and the effective rate c_eff. It also runs the article's price-based back-test on any series of total-return prices supplied by the user. It comes in three forms built on one set of formulas: a page that computes in the browser and sends nothing out, an MCP server that an AI agent runs on the user's own machine, and a Python module with no dependencies. A test runs the page's and the server's implementations on the same cases and fails if any number differs. The tool holds no market data and makes no forecast. Page: https://apapadogiannis.github.io/dual-risk-calculator/. Method: A. Papadogiannis (2026), From unified discounting to dual-risk: A new lens on DCF valuation, Finance Research Open 2(1), 100096. The code is MIT-licensed. Independent research, for informational and academic purposes only; not investment advice.",
+  "creators": [
+    {
+      "name": "Papadogiannis, Agisilaos",
+      "orcid": "0009-0002-7753-7052"
+    }
+  ],
+  "keywords": [
+    "discounted cash flow",
+    "DCF",
+    "valuation",
+    "cost of capital",
+    "discount rate",
+    "valuation ratio",
+    "dual-risk",
+    "calculator",
+    "MCP server"
+  ],
+  "license": "MIT",
+  "related_identifiers": [
+    {
+      "relation": "references",
+      "identifier": "10.1016/j.finr.2026.100096",
+      "scheme": "doi"
+    },
+    {
+      "relation": "isSupplementTo",
+      "identifier": "https://github.com/apapadogiannis/dual-risk-calculator",
+      "scheme": "url"
+    }
+  ],
+  "version": "1.0.0",
+  "publication_date": "2026-11-23"
+}

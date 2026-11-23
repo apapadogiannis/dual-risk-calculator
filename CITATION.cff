@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use this tool, please cite it as below, together with the article whose method it implements."
+title: "Dual-Risk DCF Calculator"
+type: software
+authors:
+  - family-names: Papadogiannis
+    given-names: Agisilaos
+    orcid: "https://orcid.org/0009-0002-7753-7052"
+date-released: 2026-11-23
+version: "1.0.0"
+license:
+  - MIT
+  - CC-BY-4.0
+repository-code: "https://github.com/apapadogiannis/dual-risk-calculator"
+url: "https://apapadogiannis.github.io/dual-risk-calculator/"
+references:
+  - type: article
+    title: "From unified discounting to dual-risk: A new lens on DCF valuation"
+    authors:
+      - family-names: Papadogiannis
+        given-names: Agisilaos
+    journal: "Finance Research Open"
+    volume: 2
+    issue: 1
+    start: 100096
+    year: 2026
+    doi: "10.1016/j.finr.2026.100096"

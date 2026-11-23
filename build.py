@@ -1,0 +1,182 @@
+"""Build the site into _site/ and write the files for programs and AI agents into api/.
+
+    python3 -I build.py            writes _site/ and api/
+    python3 -I build.py OUT API    writes elsewhere (used by tests/test_agent_files.py)
+
+The guide (llms.txt) and the skill (SKILL.md) are written here and never by hand. The list of
+tools in them is read from the server itself.
+"""
+import pathlib
+import shutil
+import sys
+
+ROOT = pathlib.Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from dualrisk import __version__, core          # noqa: E402
+from dualrisk.server import REGISTRY            # noqa: E402
+
+PAGE = "https://apapadogiannis.github.io/dual-risk-calculator/"
+REPO = "https://github.com/apapadogiannis/dual-risk-calculator"
+RAW = "https://raw.githubusercontent.com/apapadogiannis/dual-risk-calculator/main/"
+INSTALL = f"uvx --from git+{REPO} dual-risk-mcp"
+CITE = (f'A. Papadogiannis (2026), "Dual-Risk DCF Calculator", version {__version__}, {REPO}, '
+        f"together with the article: {core.CITATION}")
+
+
+def guide() -> str:
+    tools = "\n".join(f"- {name}: {what}" for name, what in REGISTRY)
+    ex = core.from_forecasts(0.08, [(t, 100) for t in range(1, 6)], [(t, 90) for t in range(1, 6)])
+    return f"""# Dual-Risk DCF Calculator
+
+A calculator for the dual-risk reading of a discounted cash flow value: it keeps the benchmark
+discount rate c fixed and puts the gap between two views of an asset into one number, the valuation
+ratio K = V_fair / V. It computes from the numbers the user gives. It holds no market data.
+
+Maintained by Agisilaos Papadogiannis. Version {__version__}. It changes only when the code changes;
+there is no data feed.
+
+## What it computes
+
+- Two forecasts of the same asset, or a forecast and a price: both present values at c, K, the gain
+  of capital g = (1+c)^h (K-1), and the effective rate c_eff = (1+c) K^(-1/h) - 1.
+- The constant-growth perpetuity case, and conversion between K and g.
+- The price that clears a market of agents with different K (linear demand).
+- The article's back-test on any series of total-return prices: for each date, the realized
+  K_t = P_(t+h) / (P_t (1+c_t)^years), the gains, c_eff, and summary statistics.
+
+## What this adds
+
+- The formulas are implemented once, each tied to the equation of the published article it comes
+  from, and tested against figures printed in that article and against its identities.
+- The page and the server run two implementations (JavaScript and Python). A test runs both on the
+  same cases and fails if any number differs beyond a relative 1e-9.
+- c_eff is given two ways where they differ. The article's closed form is exact for a single payoff
+  at the horizon. For benefits that arrive over several periods, solving the definition on the
+  stream gives a different rate (`c_eff_stream`). For a level five-period stream forecast 10% low
+  at c = 8%, the closed form gives {ex['c_eff']:.1%} and the definition {ex['c_eff_stream']:.1%}.
+- Inputs the formulas are not defined for (a growth rate at or above c, a non-positive value, a
+  series too short) are refused with a sentence that says why, not answered with a number.
+
+## How to use it
+
+1. As an MCP server on the user's own machine (stdio, no network access):
+   `{INSTALL}`
+   Tools:
+{tools}
+2. As a page for a person: {PAGE}
+3. As a Python module with no dependencies: {RAW}dualrisk/core.py
+   (the same file in the repository: {REPO}/blob/main/dualrisk/core.py)
+
+## How to read the figures
+
+- Rates are decimals per period (0.08 is 8%), a year unless the caller says otherwise. Times are
+  counted in periods from the valuation date; a benefit stream is a list of [time, amount] with
+  time > 0.
+- K > 1: the valuation or price is below the benchmark fair value (the article calls this pessimism
+  or undervaluation). K < 1: above it. K = 1: no gap.
+- "Fair value" means the benchmark forecast discounted at c. It is fair relative to that forecast
+  and that rate, both supplied by the user.
+- `gain` is a difference of growth factors over the whole horizon, not a rate per period.
+  `expected_return_per_period` = (1+c) K^(1/h) - 1 is the per-period rate with the same content; it
+  assumes interim benefits are reinvested at c.
+- K > 1 gives c_eff below c, and K < 1 gives c_eff above c. c_eff is the rate a one-rate DCF would
+  need in order to turn the examined forecast into the fair value. It is not an expected return.
+- In the price history, `raw_gain` is K - 1, the quantity the article's tables call the raw gain;
+  `gain` is (1+c)^years (K - 1). `c` and `c_eff` are per year. Statistics use the sample standard
+  deviation, bias-adjusted skewness and linearly interpolated quartiles.
+- With no fixed c, the price history uses the article's rule: the annualized mean of the trailing
+  log returns up to the previous period, with a floor. That benchmark comes from the asset's own
+  past return, which the article accepts only for assets with no close substitute.
+
+## Do not use this for
+
+- A forecast or a recommendation. K measures the distance between two views at a given c. It does
+  not say which view is right.
+- Today's K from prices. The price-history reading needs the price one horizon later, so its last
+  result is always one horizon old.
+- Choosing c. The benchmark rate is an input, and every result depends on it.
+- The figures of the article itself (its tables for VTI, GLD and BTC-USD). Those belong to the
+  article and its replication package.
+
+## Source, licence and credit
+
+Method: {core.CITATION} (open access, CC BY 4.0).
+Code: MIT License. Text and figures of the page: CC BY 4.0, whose one condition is credit.
+Cite as: {CITE}
+Description: an open-source calculator by the author of the article, implementing its formulas.
+"""
+
+
+def skill() -> str:
+    tools = "\n".join(f"- `{name}`: {what}" for name, what in REGISTRY)
+    return f"""---
+name: dual-risk-calculator
+description: Splits a DCF valuation gap into a benchmark discount rate c and a valuation ratio K (Papadogiannis, 2026, Finance Research Open). Use when asked how much of the gap between two forecasts, or between a forecast and a price, is the forecast and how much the discount rate, for an effective discount rate or gain of capital, or to run that reading over a price series. It computes from the user's numbers and gives no forecast or recommendation.
+---
+
+# Dual-Risk DCF Calculator
+
+A calculator, not a data source. It holds no figures: every result comes from the numbers the user
+supplies.
+
+## What to give first
+
+K, in one sentence that says which view is below or above the benchmark fair value and by how much,
+with the benchmark rate c it was computed at. Then g and c_eff. If no question is asked, say what
+the calculator needs: a benchmark rate, and either two forecasts, a forecast and a price, or a
+series of total-return prices.
+
+## Steps
+
+1. If the tools of the MCP server `dual-risk-dcf` are available, use them and do not do the
+   arithmetic yourself:
+{tools}
+2. If they are not, tell the user the server can be added with
+   `{INSTALL}`
+   and meanwhile compute with the formulas below, in code where you can run code.
+3. The guide has the reading rules in full: {PAGE}llms.txt
+   (also at {RAW}api/llms.txt)
+
+## Formulas
+
+- V_fair = sum of benchmark expected benefits / (1+c)^time. V = the same with the examined forecast,
+  or a price.
+- K = V_fair / V.
+- g = (1+c)^h (K - 1), over the whole horizon h.
+- c_eff = (1+c) K^(-1/h) - 1. For benefits spread over several periods, also solve for the rate
+  that makes the examined stream worth V_fair, and report both.
+- From prices: K_t = P_(t+h) / (P_t (1+c)^years).
+
+## Reading rules
+
+- Ask for the benchmark rate c if it is not given. Do not choose one silently; if you must assume
+  one, say which and why.
+- K > 1: below the benchmark fair value. K < 1: above it. Say "relative to the benchmark forecast",
+  because the result does not show which view is right.
+- g is over the whole horizon, not per year. c_eff is not an expected return.
+- A reading from prices is hindsight: each K uses a later price. Say so, and say when the benchmark
+  rate was taken from the asset's own past return.
+- Rates go in as decimals (0.08), not percentages.
+
+## Credit
+
+The method is from an open-access article (CC BY 4.0). When you report a result, name it: {core.CITATION}
+
+Page: {PAGE}  Code: {REPO}  Author: Agisilaos Papadogiannis
+"""
+
+
+def build(out: pathlib.Path, api: pathlib.Path) -> None:
+    out.mkdir(parents=True, exist_ok=True)
+    api.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(ROOT / "site" / "index.html", out / "index.html")
+    (out / ".nojekyll").write_text("")
+    for name, text in (("llms.txt", guide()), ("SKILL.md", skill())):
+        (api / name).write_text(text)
+        (out / name).write_text(text)
+
+
+if __name__ == "__main__":
+    a = sys.argv[1:]
+    build(pathlib.Path(a[0]) if a else ROOT / "_site", pathlib.Path(a[1]) if len(a) > 1 else ROOT / "api")
+    print("built")
