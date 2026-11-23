@@ -28,6 +28,9 @@ jobs:
       - name: The formulas reproduce figures and identities of the article
         run: python3 -I tests/test_core.py
 
+      - name: The price history reproduces the stored results of the article's replication package
+        run: python3 -I tests/test_continuity.py
+
       - name: The page and the Python code give the same numbers
         run: |
           python3 -I tests/make_vectors.py

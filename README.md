@@ -93,6 +93,7 @@ Python 3.10 or later, and Node.js for the page test.
 ```bash
 pip install -r requirements.txt
 python3 -I tests/test_core.py          # the formulas against figures and identities of the article
+python3 -I tests/test_continuity.py    # the price history against the article's replication package
 python3 -I tests/make_vectors.py       # test cases and their results in Python
 node tests/check_page.mjs              # the page's calculations on the same cases
 python3 -I tests/test_server.py        # starts the MCP server and calls every tool
@@ -111,6 +112,8 @@ site/index.html            the page, with the same formulas in JavaScript
 build.py                   builds the site and writes the guide and the skill
 api/                       llms.txt (the guide) and SKILL.md (the skill)
 tests/test_core.py         checks against the article
+tests/test_continuity.py   the price history against the stored results in reference/
+reference/                 weekly prices and results of the article's replication package
 tests/make_vectors.py      test cases for the comparison of page and Python
 tests/check_page.mjs       runs the page's formulas on those cases
 tests/test_server.py       starts the server as a client would
@@ -123,6 +126,9 @@ The `check` workflow runs on every push. The page is published only if all of it
 
 - The formulas are tested against figures printed in the article (for example, at c = 10% and five
   years a gain of 0.2 corresponds to K of about 1.12) and against its identities.
+- The price history is run on the weekly prices of the article's
+  [replication package](https://github.com/apapadogiannis/dual-risk-dcf) and must reproduce its
+  stored weekly series and its statistics of K, for all three assets.
 - The page and the server are two implementations, in JavaScript and Python. Both are run on the
   same generated cases and every number must agree to a relative 1e-9.
 - The server is started over stdio, every tool is called, and the answers are compared with the
