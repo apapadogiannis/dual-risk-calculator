@@ -175,6 +175,7 @@ def example() -> str:
     own = [[t, 90.0] for t in range(1, 6)]
     r = core.from_forecasts(c, bench, own)
     r.pop("reading")
+    r = {k: round(v, 10) for k, v in r.items()}     # ten decimals: the same file on every machine
     return json.dumps({
         "what": "A worked example of the Dual-Risk DCF Calculator: two forecasts of the same asset, the examined "
                 "one 10% below the benchmark in every year, both discounted at the benchmark rate.",

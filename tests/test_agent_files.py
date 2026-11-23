@@ -16,7 +16,7 @@ with tempfile.TemporaryDirectory() as tmp:
 import json
 ex = json.loads((ROOT / "api" / "example.json").read_text())
 again = core.from_forecasts(ex["inputs"]["c"], ex["inputs"]["benchmark"], ex["inputs"]["examined"])
-assert all(ex["results"][k] == again[k] for k in ex["fields"]), "example.json does not follow from its inputs"
+assert all(abs(ex["results"][k] - again[k]) < 1e-9 for k in ex["fields"]), "example.json does not follow from its inputs"
 assert len(REGISTRY) == 6
 for name, _ in REGISTRY:
     assert name in guide and name in skill, name

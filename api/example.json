@@ -51,15 +51,15 @@
  "results": {
   "c": 0.08,
   "horizon": 5.0,
-  "v_fair": 399.27100370780846,
-  "v_own": 359.34390333702765,
-  "K": 1.111111111111111,
-  "gain": 0.16325867519999981,
-  "growth_factor_benchmark": 1.4693280768000005,
-  "growth_factor_expected": 1.6325867520000004,
-  "expected_return_per_period": 0.10299934260814592,
-  "c_eff": 0.05748023134985503,
-  "c_eff_stream": 0.041241011068631095
+  "v_fair": 399.2710037078,
+  "v_own": 359.343903337,
+  "K": 1.1111111111,
+  "gain": 0.1632586752,
+  "growth_factor_benchmark": 1.4693280768,
+  "growth_factor_expected": 1.632586752,
+  "expected_return_per_period": 0.1029993426,
+  "c_eff": 0.0574802313,
+  "c_eff_stream": 0.0412410111
  },
  "fields": {
   "v_fair": "present value of the benchmark forecast at c",
