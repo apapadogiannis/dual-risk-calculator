@@ -240,15 +240,13 @@ def price_history(prices, periods_per_year=52, horizon_periods=None, c=None,
       c_t   = `c` if a fixed annual rate is given; otherwise the article's
               self-referential proxy max(floor, (P_t / P_{t-w})^(ppy/w) - 1):
               the annualized return over the trailing window of w periods
-              ending at t. This is the rule the article's back-test ran. It
-              equals exp(ppy * mean log return) - 1, the form printed under
-              eq. (42), taken over the w returns ending at t (the printed
-              index stops at t-1);
+              ending at t. This is the rule of the article's back-test, the
+              form under eq. (42) taken over the w returns ending at t;
       K_t   = P_{t+h} / (P_t (1+c_t)^years), eq. (43) for one year;
       raw_gain = K_t - 1, eq. (44); gain = (1+c_t)^years (K_t - 1), eq. (37);
       c_eff = (1+c_t) K_t^(-1/years) - 1, per year, eq. (26). For one year
-              this is (1+c_t)/K_t - 1, the quantity in the article's Fig. 6
-              and Table 5 (eq. 45 prints a power of 1/52 that was not applied).
+              this is (1+c_t)/K_t - 1, the yearly rate shown in the article's
+              Fig. 6 and Table 5.
     Defaults follow the article: horizon one year, window two years, floor 3%.
     Rows without a full window or without a later price are left out.
     """
