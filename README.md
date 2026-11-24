@@ -105,8 +105,10 @@ It computes from your numbers. It holds no market data and forecasts nothing.
 
 ## Privacy
 
-The page computes in your browser. It loads no library and sends nothing: the numbers you type and
-the file you choose stay on your machine. The MCP server runs locally over stdio and opens no
+The page computes in your browser and loads no library: the numbers you type and the file you choose
+stay on your machine and are sent nowhere. It counts visits with GoatCounter, which sets no cookies and keeps no IP address: it records the page
+opened, the site the visitor came from, the browser, the screen size and the country. It is
+never sent anything you enter. The MCP server runs locally over stdio and opens no
 network connection.
 
 ## Quickstart
