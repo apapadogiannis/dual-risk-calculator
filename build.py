@@ -19,7 +19,9 @@ from dualrisk.server import NAME, REGISTRY      # noqa: E402
 PAGE = "https://apapadogiannis.github.io/dual-risk-calculator/"
 REPO = "https://github.com/apapadogiannis/dual-risk-calculator"
 RAW = "https://raw.githubusercontent.com/apapadogiannis/dual-risk-calculator/main/"
-INSTALL = f"uvx --from git+{REPO} dual-risk-mcp"
+# The install line names a released version, never the moving head of main: what a reader runs on
+# their own machine is then the code of a dated release, and a later push cannot change it.
+INSTALL = f"uvx --from git+{REPO}@v{__version__} dual-risk-mcp"
 ARCHIVE = "https://doi.org/10.5281/zenodo.24465124"
 CITE = (f'A. Papadogiannis (2026), "Dual-Risk DCF Calculator", version {__version__}, Zenodo, {ARCHIVE}, '
         f"together with the article: {core.CITATION}")

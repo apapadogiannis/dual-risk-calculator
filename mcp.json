@@ -2,7 +2,7 @@
   "mcpServers": {
     "dual-risk": {
       "command": "uvx",
-      "args": ["--from", "git+https://github.com/apapadogiannis/dual-risk-calculator", "dual-risk-mcp"]
+      "args": ["--from", "git+https://github.com/apapadogiannis/dual-risk-calculator@v1.2.0", "dual-risk-mcp"]
     }
   }
 }

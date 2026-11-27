@@ -39,7 +39,7 @@ there is no data feed.
 ## How to use it
 
 1. As an MCP server on the user's own machine (stdio, no network access), named `dual-risk`:
-   `uvx --from git+https://github.com/apapadogiannis/dual-risk-calculator dual-risk-mcp`
+   `uvx --from git+https://github.com/apapadogiannis/dual-risk-calculator@v1.2.0 dual-risk-mcp`
    Every tool describes its parameters and returns one record with described fields (the output
    schema), plus `warnings`, `source` and `note`.
    Tools:

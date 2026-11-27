@@ -18,7 +18,7 @@ The same calculations run as an MCP server on your own machine. It has no networ
 nothing. For Claude Code:
 
 ```bash
-claude mcp add dual-risk -- uvx --from git+https://github.com/apapadogiannis/dual-risk-calculator dual-risk-mcp
+claude mcp add dual-risk -- uvx --from git+https://github.com/apapadogiannis/dual-risk-calculator@v1.2.0 dual-risk-mcp
 ```
 
 For Claude Desktop and other clients that take a configuration file, [`mcp.json`](mcp.json) is the
@@ -29,11 +29,15 @@ entry to copy into it:
   "mcpServers": {
     "dual-risk": {
       "command": "uvx",
-      "args": ["--from", "git+https://github.com/apapadogiannis/dual-risk-calculator", "dual-risk-mcp"]
+      "args": ["--from", "git+https://github.com/apapadogiannis/dual-risk-calculator@v1.2.0", "dual-risk-mcp"]
     }
   }
 }
 ```
+
+The command names a released version (`@v1.2.0`), not the moving head of the repository, so the code
+that runs on your machine is the code of that release. To move to a later release, change the
+version in the line.
 
 It needs [uv](https://docs.astral.sh/uv/) and Python 3.10 or later. The first start downloads and
 builds the package, which takes a few seconds; later starts are immediate. The server itself is one
